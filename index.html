@@ -233,7 +233,7 @@
           <div class="f full">
             <label>주소 (A.)</label>
             <div class="seg" id="addrSeg">
-              <button type="button" class="seg-opt on" data-addr="서울시 강서구 공항대로45길 71, 씨에이치빌딩 3층"><b>씨에이치빌딩 3층</b><span>공항대로45길 71</span></button>
+              <button type="button" class="seg-opt on" data-addr="서울시 강서구 공항대로45길 71, 씨에이치빌딩 8층"><b>씨에이치빌딩 8층</b><span>공항대로45길 71</span></button>
               <button type="button" class="seg-opt" data-addr="서울시 강서구 공항대로45길 75, 제일빌딩 5층"><b>제일빌딩 5층</b><span>공항대로45길 75</span></button>
             </div>
           </div>
@@ -346,8 +346,10 @@ function alphaSignature(t,d){
   } else {
     wm = `<span style="font:800 25px ${SF};letter-spacing:-.01em;color:#fff">${t.wordmark}</span>`;
   }
-  const wmTop = 116;
-  const certHTML = '';
+  const hasCert = !!d.cert;
+  const wmTop = hasCert ? 102 : 116;
+  const certTop = wmTop + 28;
+  const certHTML = hasCert ? `<div class="esig-cert" style="position:absolute;left:83px;top:${certTop}px;white-space:nowrap;font:500 13px ${SF};color:#fff">${esc(d.cert)}</div>` : '';
   const disclaimer = `※ 본 이메일 내용과 모든 첨부파일은 ${company}와 수신인만의 기밀로서, 지정된 수신인만이 이용할 수 있습니다. 만일 일부라도 무단으로 보유, 전송, 공개, 복제, 이용할 경우 법적 조치를 취할 수 있습니다. 귀하가 지정된 수신인이 아니라면 즉시 발송인에게 회신 E-mail 또는 위 연락처로 사실을 알려주시고, 해당 메일은 즉시 삭제하여 주시기 바랍니다. 감사합니다.`;
   return `<div class="esig" style="position:relative;width:960px;height:360px;background:#161519;font-family:${SF};overflow:hidden">
     <div style="position:absolute;top:24px;right:59px;font:400 12px ${SF};letter-spacing:.04em;color:#fff">${slogan}</div>
@@ -492,7 +494,7 @@ deptInput.addEventListener('keydown',e=>{
 deptInput.addEventListener('blur',()=>{ setTimeout(()=>{ if(deptInput.value!==deptValue) deptInput.value=deptValue; closeDept(); },120); });
 
 /* ---------- 직책 검색 드롭다운(직접 입력 가능 + 키보드) ---------- */
-const TITLES=['대표','이사','팀장','그룹장','매니저','컨설턴트'];
+const TITLES=['대표','이사','팀장','그룹장','매니저','컨설턴트','디자이너'];
 const titleInput=$('titleInput'), titlePanel=$('titlePanel');
 let titleOpts=[], titleActive=-1;
 function renderTitle(filter){
@@ -522,6 +524,16 @@ titleInput.addEventListener('keydown',e=>{
 });
 titleInput.addEventListener('blur',()=>setTimeout(()=>titlePanel.classList.remove('open'),120));
 
+/* ---------- 전화번호 자동 띄어쓰기 (010 0000 0000) ---------- */
+const phoneEl=$('phone');
+if(phoneEl) phoneEl.addEventListener('input',()=>{
+  let d=phoneEl.value.replace(/\D/g,'').slice(0,11);
+  let out=d;
+  if(d.length>7) out=d.slice(0,3)+' '+d.slice(3,7)+' '+d.slice(7);
+  else if(d.length>3) out=d.slice(0,3)+' '+d.slice(3);
+  phoneEl.value=out;
+});
+
 /* ---------- 팩스 잠금/해제 ---------- */
 const FAX_DEFAULT='02 2659 9166';
 const faxEdit=$('faxEdit'), faxInput=$('fax');
@@ -544,7 +556,7 @@ emailDomain.addEventListener('change',()=>{
 });
 
 /* ---------- 주소 토글 ---------- */
-let addrValue='서울시 강서구 공항대로45길 71, 씨에이치빌딩 3층';
+let addrValue='서울시 강서구 공항대로45길 71, 씨에이치빌딩 8층';
 document.querySelectorAll('#addrSeg .seg-opt').forEach(btn=>{
   btn.addEventListener('click',()=>{
     document.querySelectorAll('#addrSeg .seg-opt').forEach(b=>b.classList.remove('on'));
@@ -629,18 +641,18 @@ function buildOutput(key,d){
 }
 
 function fitCard(frame,card){ const s=frame.clientWidth/540; card.style.transform=`scale(${s})`; frame.style.height=(300*s)+'px'; }
-function fitCert(node, markSel='.wm-logo, .wm', certSel='.cert'){
+function fitCert(node, markSel='.wm-logo, .wm', certSel='.cert', maxFs=16){
   const cert=node.querySelector(certSel); if(!cert) return;
   const mark=node.querySelector(markSel); if(!mark) return;
   const target=mark.offsetWidth; if(!target) return;
   cert.style.fontSize='12px';
   const natural=cert.offsetWidth; if(!natural) return;
   let fs=12*(target/natural);
-  fs=Math.max(8, Math.min(16, fs));
+  fs=Math.max(8, Math.min(maxFs, fs));
   cert.style.fontSize=fs.toFixed(2)+'px';
 }
 function fitSig(frame,esig){
-  fitCert(esig,'.esig-wm','.esig-cert');
+  fitCert(esig,'.esig-wm','.esig-cert',22);
   const s=Math.min(1.5, frame.clientWidth/960);
   esig.style.transformOrigin='top left';
   esig.style.transform=`scale(${s})`;
@@ -671,7 +683,7 @@ async function downloadSig(html,filename,btn){
   const esig=holder.querySelector('.esig')||holder.firstElementChild;
   try{
     try{ await document.fonts.ready; }catch(e){}
-    fitCert(esig,'.esig-wm','.esig-cert');
+    fitCert(esig,'.esig-wm','.esig-cert',22);
     const canvas=await html2canvas(esig,{scale:3,backgroundColor:null,width:960,height:360,windowWidth:960});
     const a=el('a'); a.href=canvas.toDataURL('image/png'); a.download=filename; a.click();
     flash(btn,'다운로드됨 ✓',orig);
@@ -687,7 +699,7 @@ async function downloadAll(b,d,btn){
   try{
     if(b.front(d)) save(await capCard(b.front(d)), `${b.name}_${nm}_앞면.png`);
     save(await capCard(b.back(d)), `${b.name}_${nm}_뒷면.png`);
-    const hold=el('div');hold.style.cssText='position:fixed;left:-10000px;top:0;display:inline-block';hold.innerHTML=b.signature(d);document.body.appendChild(hold);const esig=hold.querySelector('.esig');try{await document.fonts.ready;}catch(e){}fitCert(esig,'.esig-wm','.esig-cert');const sc=await html2canvas(esig,{scale:3,backgroundColor:null,width:960,height:360,windowWidth:960});hold.remove();save(sc, `${b.name}_${nm}_서명.png`);
+    const hold=el('div');hold.style.cssText='position:fixed;left:-10000px;top:0;display:inline-block';hold.innerHTML=b.signature(d);document.body.appendChild(hold);const esig=hold.querySelector('.esig');try{await document.fonts.ready;}catch(e){}fitCert(esig,'.esig-wm','.esig-cert',22);const sc=await html2canvas(esig,{scale:3,backgroundColor:null,width:960,height:360,windowWidth:960});hold.remove();save(sc, `${b.name}_${nm}_서명.png`);
     flash(btn,'다운로드됨 ✓',orig);
   }catch(e){ btn.textContent='실패 — 다시'; }
   finally{ btn.disabled=false; }
@@ -713,7 +725,7 @@ function flash(btn,msg,orig){ btn.classList.add('done'); btn.textContent=msg; se
 
 /* ---------- 대량 생성 (엑셀/CSV → ZIP) ---------- */
 let bulkRows=[];
-const ADDR_CH='서울시 강서구 공항대로45길 71, 씨에이치빌딩 3층';
+const ADDR_CH='서울시 강서구 공항대로45길 71, 씨에이치빌딩 8층';
 const ADDR_JE='서울시 강서구 공항대로45길 75, 제일빌딩 5층';
 function rowVal(row,keys){ for(const k of keys){ if(row[k]!=null && (''+row[k]).trim()!=='') return (''+row[k]).trim(); } return ''; }
 function rowToBrandKey(row){
@@ -786,7 +798,7 @@ if($('bulkGo')) $('bulkGo').addEventListener('click',async()=>{
       const safe=`${b.name}_${d.name}`.replace(/[\\/:*?"<>|]/g,'_');
       if(b.front && b.front(d)) zip.file(`${safe}/${safe}_앞면.png`, await toBlob(await cap(b.front(d),540,300)));
       zip.file(`${safe}/${safe}_뒷면.png`, await toBlob(await cap(b.back(d),540,300)));
-      const sh=el('div'); sh.style.cssText='position:fixed;left:-10000px;top:0;display:inline-block'; sh.innerHTML=b.signature(d); document.body.appendChild(sh); const esig=sh.querySelector('.esig'); fitCert(esig,'.esig-wm','.esig-cert'); const sc=await html2canvas(esig,{scale:2,backgroundColor:null,width:960,height:360,windowWidth:960}); sh.remove();
+      const sh=el('div'); sh.style.cssText='position:fixed;left:-10000px;top:0;display:inline-block'; sh.innerHTML=b.signature(d); document.body.appendChild(sh); const esig=sh.querySelector('.esig'); fitCert(esig,'.esig-wm','.esig-cert',22); const sc=await html2canvas(esig,{scale:2,backgroundColor:null,width:960,height:360,windowWidth:960}); sh.remove();
       zip.file(`${safe}/${safe}_서명.png`, await toBlob(sc));
       ok++;
     }catch(err){ fail++; }
