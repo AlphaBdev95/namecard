@@ -1,0 +1,539 @@
+<!--
+  팀 간 업무 요청 인박스 — MVP 프로토타입
+  - 반응형 웹 (모바일 우선)
+  - 로그인/푸시는 흉내(stub), 핵심 흐름은 실제로 동작
+  - 같은 링크를 여러 명이 열면 공유 저장소로 서로 요청을 주고받을 수 있음
+-->
+<div id="root"></div>
+
+<style>
+  :root {
+    --bg: #EEF1F6;
+    --surface: #FFFFFF;
+    --ink: #16213D;
+    --ink-soft: #5A6478;
+    --ink-faint: #9AA3B2;
+    --line: #E2E6EE;
+    --brand: #2B4A8B;
+    --brand-press: #213A6E;
+    --signal: #E08A2B;     /* 안읽음 / 주목 */
+    --signal-bg: #FCEFDD;
+    --confirm: #2F6FED;    /* 확인함 */
+    --confirm-bg: #E6EEFD;
+    --done: #2E9E6B;       /* 완료 */
+    --done-bg: #E2F3EA;
+    --shadow: 0 1px 2px rgba(22,33,61,.06), 0 8px 24px rgba(22,33,61,.06);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  #root {
+    font-family: "Apple SD Gothic Neo", Pretendard, "Malgun Gothic", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 60px rgba(22,33,61,.05);
+  }
+
+  /* ---------- 로그인(아이덴티티 선택) ---------- */
+  .auth { padding: 0 22px; display: flex; flex-direction: column; min-height: 100vh; }
+  .auth-top { padding-top: 64px; }
+  .brandmark { display: inline-flex; align-items: center; gap: 9px; font-weight: 800; letter-spacing: -.02em; font-size: 15px; color: var(--brand); }
+  .brandmark .dot { width: 9px; height: 9px; border-radius: 3px; background: var(--signal); box-shadow: 0 0 0 4px var(--signal-bg); }
+  .auth h1 { font-size: 27px; line-height: 1.25; letter-spacing: -.03em; margin: 26px 0 10px; font-weight: 800; }
+  .auth p.sub { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 30px; }
+  .pick-label { font-size: 12px; font-weight: 700; color: var(--ink-faint); letter-spacing: .04em; margin: 8px 4px 12px; text-transform: uppercase; }
+  .person {
+    display: flex; align-items: center; gap: 13px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 15px;
+    padding: 13px 15px; margin-bottom: 10px; cursor: pointer;
+    transition: transform .08s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+  .person:active { transform: scale(.985); }
+  .person:hover { border-color: #C7D0E0; box-shadow: var(--shadow); }
+  .avatar { width: 42px; height: 42px; border-radius: 12px; flex: none; display: grid; place-items: center; font-weight: 800; font-size: 15px; color: #fff; letter-spacing: -.02em; }
+  .person .meta { flex: 1; min-width: 0; }
+  .person .nm { font-weight: 700; font-size: 15px; }
+  .person .tm { font-size: 12.5px; color: var(--ink-faint); margin-top: 1px; }
+  .person .arr { color: var(--ink-faint); font-size: 19px; }
+  .auth-foot { margin-top: auto; padding: 26px 0 30px; color: var(--ink-faint); font-size: 12px; text-align: center; }
+
+  /* ---------- 헤더 ---------- */
+  .hdr {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(238,241,246,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding: 13px 18px 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .hdr .who { display: flex; align-items: center; gap: 9px; cursor: pointer; padding: 4px 8px 4px 4px; border-radius: 99px; margin-left: -4px; }
+  .hdr .who:active { background: rgba(22,33,61,.05); }
+  .hdr .who .avatar { width: 30px; height: 30px; border-radius: 9px; font-size: 12px; }
+  .hdr .who .nm { font-weight: 700; font-size: 14px; }
+  .hdr .who .tm { font-size: 11px; color: var(--ink-faint); }
+  .hdr .switch { font-size: 11px; color: var(--brand); font-weight: 700; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 3px 9px; }
+  .bell { margin-left: auto; position: relative; width: 40px; height: 40px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; cursor: pointer; }
+  .bell:active { transform: scale(.94); }
+  .bell svg { width: 19px; height: 19px; stroke: var(--ink); }
+  .bell .badge { position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 99px; background: var(--signal); color: #fff; font-size: 11px; font-weight: 800; display: grid; place-items: center; border: 2px solid var(--bg); }
+
+  /* ---------- 탭 ---------- */
+  .tabs { display: flex; gap: 6px; padding: 12px 16px 4px; }
+  .tab { flex: 1; text-align: center; padding: 9px 0; font-size: 13.5px; font-weight: 700; color: var(--ink-faint); background: transparent; border: none; border-radius: 11px; cursor: pointer; position: relative; }
+  .tab .cnt { font-size: 11px; opacity: .8; }
+  .tab.on { color: var(--brand); background: var(--surface); box-shadow: var(--shadow); }
+
+  /* ---------- 리스트 ---------- */
+  .list { flex: 1; overflow-y: auto; padding: 8px 16px 120px; }
+  .daygroup { font-size: 11px; font-weight: 800; color: var(--ink-faint); letter-spacing: .04em; margin: 16px 4px 9px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    padding: 14px 15px 13px 18px; margin-bottom: 11px; position: relative; overflow: hidden;
+    box-shadow: var(--shadow);
+    animation: pop .22s ease both;
+  }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px); } }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; }
+  .card.s-unread::before { background: var(--signal); }
+  .card.s-confirmed::before { background: var(--confirm); }
+  .card.s-done::before { background: var(--done); }
+
+  .card .crow { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
+  .card .ca { width: 27px; height: 27px; border-radius: 8px; flex: none; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 11.5px; }
+  .card .cfrom { font-size: 13px; font-weight: 700; }
+  .card .cfrom span { color: var(--ink-faint); font-weight: 600; }
+  .card .ctime { margin-left: auto; font-size: 11.5px; color: var(--ink-faint); }
+
+  .card .ctext { font-size: 15.5px; line-height: 1.5; letter-spacing: -.01em; }
+  .card.s-done .ctext { color: var(--ink-faint); text-decoration: line-through; text-decoration-color: var(--ink-faint); }
+
+  .card .cfoot { display: flex; align-items: center; gap: 8px; margin-top: 13px; }
+  .chip { font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; }
+  .chip.due { background: #F1F3F8; color: var(--ink-soft); }
+  .chip.due.soon { background: var(--signal-bg); color: #A8631A; }
+  .statuspill { font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 99px; }
+  .statuspill.s-unread { background: var(--signal-bg); color: #A8631A; }
+  .statuspill.s-confirmed { background: var(--confirm-bg); color: #1F4FB0; }
+  .statuspill.s-done { background: var(--done-bg); color: #1C7A50; }
+
+  .btnrow { margin-left: auto; display: flex; gap: 7px; }
+  .act { font-size: 13px; font-weight: 700; padding: 7px 14px; border-radius: 10px; border: none; cursor: pointer; }
+  .act.primary { background: var(--brand); color: #fff; }
+  .act.primary:active { background: var(--brand-press); }
+  .act.ghost { background: #F1F3F8; color: var(--ink-soft); }
+  .act.ok { background: var(--done); color: #fff; }
+
+  .empty { text-align: center; padding: 70px 30px; color: var(--ink-faint); }
+  .empty .big { font-size: 16px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
+  .empty .sm { font-size: 13.5px; }
+  .empty .ic { font-size: 34px; margin-bottom: 14px; opacity: .5; }
+
+  .showdone { text-align: center; margin: 6px 0 0; }
+  .showdone button { background: none; border: none; color: var(--ink-faint); font-size: 12.5px; font-weight: 700; cursor: pointer; padding: 8px; }
+
+  /* ---------- FAB ---------- */
+  .fab {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
+    z-index: 30; background: var(--brand); color: #fff; border: none;
+    padding: 14px 24px; border-radius: 99px; font-size: 15px; font-weight: 800; letter-spacing: -.01em;
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    box-shadow: 0 10px 28px rgba(43,74,139,.4);
+  }
+  .fab:active { transform: translateX(-50%) scale(.96); }
+  .fab svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 2.5; }
+
+  /* ---------- 모달 / 시트 ---------- */
+  .scrim { position: fixed; inset: 0; background: rgba(16,22,40,.42); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 50%; bottom: 0; transform: translate(-50%, 100%);
+    width: 100%; max-width: 480px; background: var(--surface);
+    border-radius: 22px 22px 0 0; z-index: 50; padding: 8px 20px 26px;
+    transition: transform .26s cubic-bezier(.2,.8,.2,1); max-height: 90vh; overflow-y: auto;
+  }
+  .sheet.on { transform: translate(-50%, 0); }
+  .grab { width: 38px; height: 4px; border-radius: 99px; background: var(--line); margin: 6px auto 14px; }
+  .sheet h2 { font-size: 19px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 4px; }
+  .sheet .sh-sub { color: var(--ink-faint); font-size: 13px; margin: 0 0 20px; }
+  .field { margin-bottom: 18px; }
+  .field > label { display: block; font-size: 12.5px; font-weight: 800; color: var(--ink-soft); margin-bottom: 9px; }
+  .recip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin: 0 -2px; }
+  .recip::-webkit-scrollbar { display: none; }
+  .rp { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 64px; cursor: pointer; padding: 4px; border-radius: 12px; border: 2px solid transparent; }
+  .rp.on { border-color: var(--brand); background: #F4F7FD; }
+  .rp .avatar { width: 38px; height: 38px; border-radius: 11px; font-size: 13px; }
+  .rp .rpn { font-size: 11.5px; font-weight: 700; text-align: center; line-height: 1.2; }
+  .rp .rpt { font-size: 10px; color: var(--ink-faint); }
+  textarea, input[type=date] {
+    width: 100%; border: 1.5px solid var(--line); border-radius: 13px; padding: 13px 14px;
+    font: inherit; font-size: 15px; color: var(--ink); background: #FBFCFE; resize: none;
+    outline: none; transition: border-color .15s ease;
+  }
+  textarea:focus, input[type=date]:focus { border-color: var(--brand); background: #fff; }
+  textarea { min-height: 92px; }
+  .submit { width: 100%; margin-top: 6px; background: var(--brand); color: #fff; border: none; padding: 15px; border-radius: 14px; font-size: 15.5px; font-weight: 800; cursor: pointer; }
+  .submit:disabled { background: #C2CADB; cursor: not-allowed; }
+  .submit:active:not(:disabled) { background: var(--brand-press); }
+
+  /* ---------- 토스트 ---------- */
+  .toast {
+    position: fixed; top: 14px; left: 50%; transform: translate(-50%, -160%);
+    z-index: 60; background: var(--ink); color: #fff; padding: 12px 16px; border-radius: 14px;
+    font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.3); transition: transform .3s cubic-bezier(.2,.9,.2,1); max-width: 92%;
+  }
+  .toast.on { transform: translate(-50%, 0); }
+  .toast .tdot { width: 8px; height: 8px; border-radius: 99px; background: var(--signal); flex: none; }
+</style>
+
+<script>
+(function () {
+  // ----------------- 데이터 -----------------
+  var TEAM = [
+    { id: 'u_sales',  name: '김영업',  team: '영업팀',     c: '#2B4A8B' },
+    { id: 'u_design', name: '이디자인', team: '디자인팀',   c: '#C2557A' },
+    { id: 'u_dev',    name: '박개발',  team: '개발팀',     c: '#2E7D6B' },
+    { id: 'u_mkt',    name: '최마케팅', team: '마케팅팀',   c: '#C77B2B' },
+    { id: 'u_admin',  name: '정총무',  team: '경영지원팀', c: '#6B5BBD' }
+  ];
+  var byId = {};
+  TEAM.forEach(function (p) { byId[p.id] = p; });
+
+  var K_REQ = 'mvp_requests_v1';
+  var K_SEED = 'mvp_seeded_v1';
+  var K_ME = 'mvp_me_v1';
+
+  var me = null;          // 현재 로그인한 사람 id
+  var tab = 'in';         // 'in' | 'out'
+  var showDone = false;
+  var cache = [];         // 마지막으로 받아온 요청 배열
+  var lastSig = '';       // 변경 감지용
+  var knownIncoming = {}; // 토스트 중복 방지
+  var compose = { to: null };
+
+  // ----------------- 저장소 래퍼 -----------------
+  async function sGet(key, shared) {
+    try { var r = await window.storage.get(key, shared); return r ? r.value : null; }
+    catch (e) { return null; }
+  }
+  async function sSet(key, val, shared) {
+    try { await window.storage.set(key, val, shared); } catch (e) {}
+  }
+  async function getAll() {
+    var raw = await sGet(K_REQ, true);
+    if (!raw) return [];
+    try { return JSON.parse(raw); } catch (e) { return []; }
+  }
+  async function saveAll(arr) { await sSet(K_REQ, JSON.stringify(arr), true); }
+
+  // ----------------- 시드(첫 실행시 샘플 요청) -----------------
+  async function seedIfNeeded() {
+    var seeded = await sGet(K_SEED, true);
+    if (seeded) return;
+    var now = Date.now();
+    var sample = [
+      { id: 'r1', from: 'u_design', to: 'u_sales', text: '지난주 미팅 자료 최종본 공유 부탁드려요. 고객사 보내야 해서요.', due: dateStr(now + 864e5), status: 'unread', created: now - 36e5, updated: now - 36e5 },
+      { id: 'r2', from: 'u_dev', to: 'u_sales', text: '고객사 계정 추가 요청 건, 승인 여부 회신 주시면 바로 처리하겠습니다.', due: null, status: 'unread', created: now - 24e5, updated: now - 24e5 },
+      { id: 'r3', from: 'u_mkt', to: 'u_sales', text: '다음달 프로모션 영업 협조 가능 일정 회신 바랍니다.', due: dateStr(now + 3 * 864e5), status: 'confirmed', created: now - 9e6, updated: now - 7e6 }
+    ];
+    await saveAll(sample);
+    await sSet(K_SEED, '1', true);
+  }
+
+  // ----------------- 유틸 -----------------
+  function dateStr(ts) { var d = new Date(ts); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function esc(s) { return (s || '').replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+  function initials(name) { return name ? name.slice(0, 1) : '?'; }
+
+  function timeAgo(ts) {
+    var s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return '방금';
+    if (s < 3600) return Math.floor(s / 60) + '분 전';
+    if (s < 86400) return Math.floor(s / 3600) + '시간 전';
+    var d = Math.floor(s / 86400);
+    if (d < 7) return d + '일 전';
+    return dateStr(ts).slice(5);
+  }
+  function dueInfo(due) {
+    if (!due) return null;
+    var d = new Date(due + 'T23:59:59').getTime();
+    var days = Math.ceil((d - Date.now()) / 864e5);
+    var label, soon = false;
+    if (days < 0) { label = '기한 지남'; soon = true; }
+    else if (days === 0) { label = '오늘까지'; soon = true; }
+    else if (days === 1) { label = '내일까지'; soon = true; }
+    else { label = due.slice(5).replace('-', '/') + '까지'; }
+    return { label: label, soon: soon };
+  }
+  var STATUS_KO = { unread: '안읽음', confirmed: '확인함', done: '완료' };
+
+  // ----------------- 동작 -----------------
+  async function addRequest(toId, text, due) {
+    var arr = await getAll();
+    arr.push({ id: 'r' + Date.now() + Math.floor(Math.random() * 999), from: me, to: toId, text: text, due: due || null, status: 'unread', created: Date.now(), updated: Date.now() });
+    await saveAll(arr);
+    await refresh(true);
+  }
+  async function setStatus(id, status) {
+    var arr = await getAll();
+    for (var i = 0; i < arr.length; i++) { if (arr[i].id === id) { arr[i].status = status; arr[i].updated = Date.now(); } }
+    await saveAll(arr);
+    await refresh(true);
+  }
+
+  // ----------------- 렌더 -----------------
+  function render() {
+    var root = document.getElementById('root');
+    if (!me) { root.innerHTML = authView(); bindAuth(); return; }
+    if (!document.querySelector('.app')) { root.innerHTML = appShell(); bindApp(); }
+    paintHeader();
+    paintTabs();
+    paintList();
+  }
+
+  function authView() {
+    var rows = TEAM.map(function (p) {
+      return '<div class="person" data-id="' + p.id + '">' +
+        '<div class="avatar" style="background:' + p.c + '">' + initials(p.name) + '</div>' +
+        '<div class="meta"><div class="nm">' + p.name + '</div><div class="tm">' + p.team + '</div></div>' +
+        '<div class="arr">›</div></div>';
+    }).join('');
+    return '<div class="app"><div class="auth"><div class="auth-top">' +
+      '<div class="brandmark"><span class="dot"></span> 요청함</div>' +
+      '<h1>흘러가는 업무 요청을<br>한 곳에 쌓아두세요</h1>' +
+      '<p class="sub">전화·카톡으로 받던 요청이 사라지지 않게. 미팅 다녀와서 켜보면 할 일이 순서대로 정리돼 있어요.</p>' +
+      '<div class="pick-label">누구로 접속할까요 · 테스트용</div>' + rows +
+      '</div><div class="auth-foot">실제 서비스에서는 카카오·구글 로그인으로 대체됩니다</div></div></div>';
+  }
+  function bindAuth() {
+    Array.prototype.forEach.call(document.querySelectorAll('.person'), function (el) {
+      el.addEventListener('click', async function () {
+        me = el.getAttribute('data-id');
+        await sSet(K_ME, me, false);
+        document.getElementById('root').innerHTML = '';
+        render(); await refresh(true);
+      });
+    });
+  }
+
+  function appShell() {
+    return '<div class="app">' +
+      '<div class="hdr"></div>' +
+      '<div class="tabs"></div>' +
+      '<div class="list"></div>' +
+      '<button class="fab" id="fab"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg> 새 요청</button>' +
+      sheetHtml() +
+      '<div class="scrim" id="scrim"></div>' +
+      '<div class="toast" id="toast"><span class="tdot"></span><span id="toasttext"></span></div>' +
+      '</div>';
+  }
+
+  function paintHeader() {
+    var p = byId[me];
+    var unread = cache.filter(function (r) { return r.to === me && r.status === 'unread'; }).length;
+    document.querySelector('.hdr').innerHTML =
+      '<div class="who" id="who">' +
+        '<div class="avatar" style="background:' + p.c + '">' + initials(p.name) + '</div>' +
+        '<div><div class="nm">' + p.name + '</div><div class="tm">' + p.team + '</div></div>' +
+        '<span class="switch">전환</span>' +
+      '</div>' +
+      '<div class="bell" id="bell"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        (unread ? '<span class="badge">' + unread + '</span>' : '') + '</div>';
+    document.getElementById('who').addEventListener('click', switchUser);
+    document.getElementById('bell').addEventListener('click', function () { tab = 'in'; render(); });
+  }
+
+  function paintTabs() {
+    var inN = cache.filter(function (r) { return r.to === me && r.status !== 'done'; }).length;
+    var outN = cache.filter(function (r) { return r.from === me && r.status !== 'done'; }).length;
+    document.querySelector('.tabs').innerHTML =
+      '<button class="tab ' + (tab === 'in' ? 'on' : '') + '" data-t="in">받은 요청 <span class="cnt">' + inN + '</span></button>' +
+      '<button class="tab ' + (tab === 'out' ? 'on' : '') + '" data-t="out">보낸 요청 <span class="cnt">' + outN + '</span></button>';
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (el) {
+      el.addEventListener('click', function () { tab = el.getAttribute('data-t'); render(); });
+    });
+  }
+
+  function paintList() {
+    var listEl = document.querySelector('.list');
+    var mine = cache.filter(function (r) { return tab === 'in' ? r.to === me : r.from === me; });
+    mine.sort(function (a, b) { return b.created - a.created; });
+
+    var active = mine.filter(function (r) { return r.status !== 'done'; });
+    var done = mine.filter(function (r) { return r.status === 'done'; });
+
+    var html = '';
+    if (active.length === 0 && (!showDone || done.length === 0)) {
+      html = emptyState();
+    } else {
+      if (active.length) {
+        html += active.map(cardHtml).join('');
+      } else {
+        html += emptyState();
+      }
+      if (done.length) {
+        html += '<div class="showdone"><button id="toggledone">' + (showDone ? '완료된 요청 숨기기' : '완료된 요청 ' + done.length + '건 보기') + '</button></div>';
+        if (showDone) html += done.map(cardHtml).join('');
+      }
+    }
+    listEl.innerHTML = html;
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-act]'), function (el) {
+      el.addEventListener('click', function () {
+        setStatus(el.getAttribute('data-id'), el.getAttribute('data-act'));
+      });
+    });
+    var td = document.getElementById('toggledone');
+    if (td) td.addEventListener('click', function () { showDone = !showDone; paintList(); });
+  }
+
+  function emptyState() {
+    if (tab === 'in') {
+      return '<div class="empty"><div class="ic">📥</div><div class="big">쌓인 요청이 없어요</div><div class="sm">미팅 다녀오면 여기에<br>받은 요청이 순서대로 모입니다.</div></div>';
+    }
+    return '<div class="empty"><div class="ic">📤</div><div class="big">보낸 요청이 없어요</div><div class="sm">아래 ‘새 요청’으로<br>다른 팀에 업무를 남겨보세요.</div></div>';
+  }
+
+  function cardHtml(r) {
+    var other = tab === 'in' ? byId[r.from] : byId[r.to];
+    var di = dueInfo(r.due);
+    var foot;
+    if (tab === 'in') {
+      var btn = '';
+      if (r.status === 'unread') btn = '<button class="act primary" data-act="confirmed" data-id="' + r.id + '">확인</button>';
+      else if (r.status === 'confirmed') btn = '<button class="act ok" data-act="done" data-id="' + r.id + '">완료</button>';
+      else btn = '<button class="act ghost" data-act="confirmed" data-id="' + r.id + '">되돌리기</button>';
+      foot = (di ? '<span class="chip due ' + (di.soon ? 'soon' : '') + '">🕑 ' + di.label + '</span>' : '') +
+             '<span class="statuspill s-' + r.status + '">' + STATUS_KO[r.status] + '</span>' +
+             '<div class="btnrow">' + btn + '</div>';
+    } else {
+      foot = (di ? '<span class="chip due ' + (di.soon ? 'soon' : '') + '">🕑 ' + di.label + '</span>' : '') +
+             '<span class="statuspill s-' + r.status + '">' + (r.status === 'unread' ? '상대 미확인' : STATUS_KO[r.status]) + '</span>';
+    }
+    var label = tab === 'in' ? '<span>받음 ·</span> ' + other.name : '<span>보냄 ·</span> ' + other.name;
+    return '<div class="card s-' + r.status + '">' +
+      '<div class="crow"><div class="ca" style="background:' + other.c + '">' + initials(other.name) + '</div>' +
+        '<div class="cfrom">' + label + ' <span>' + other.team + '</span></div>' +
+        '<div class="ctime">' + timeAgo(r.created) + '</div></div>' +
+      '<div class="ctext">' + esc(r.text) + '</div>' +
+      '<div class="cfoot">' + foot + '</div></div>';
+  }
+
+  // ----------------- 작성 시트 -----------------
+  function sheetHtml() {
+    return '<div class="sheet" id="sheet"><div class="grab"></div>' +
+      '<h2>새 요청 보내기</h2><p class="sh-sub">받는 사람에게 알림이 가고, 처리될 때까지 사라지지 않아요.</p>' +
+      '<div class="field"><label>누구에게</label><div class="recip" id="recip"></div></div>' +
+      '<div class="field"><label>요청 내용</label><textarea id="reqtext" placeholder="예) 고객사 보낼 견적서 오늘까지 검토 부탁드려요"></textarea></div>' +
+      '<div class="field"><label>마감일 <span style="color:var(--ink-faint);font-weight:600">· 선택</span></label><input type="date" id="reqdue"></div>' +
+      '<button class="submit" id="send" disabled>요청 보내기</button></div>';
+  }
+  function openSheet() {
+    compose = { to: null };
+    var recip = document.getElementById('recip');
+    recip.innerHTML = TEAM.filter(function (p) { return p.id !== me; }).map(function (p) {
+      return '<div class="rp" data-id="' + p.id + '"><div class="avatar" style="background:' + p.c + '">' + initials(p.name) + '</div><div class="rpn">' + p.name + '</div><div class="rpt">' + p.team + '</div></div>';
+    }).join('');
+    Array.prototype.forEach.call(recip.querySelectorAll('.rp'), function (el) {
+      el.addEventListener('click', function () {
+        compose.to = el.getAttribute('data-id');
+        Array.prototype.forEach.call(recip.querySelectorAll('.rp'), function (x) { x.classList.remove('on'); });
+        el.classList.add('on');
+        validate();
+      });
+    });
+    document.getElementById('reqtext').value = '';
+    document.getElementById('reqdue').value = '';
+    document.getElementById('reqtext').oninput = validate;
+    validate();
+    document.getElementById('scrim').classList.add('on');
+    document.getElementById('sheet').classList.add('on');
+  }
+  function closeSheet() {
+    document.getElementById('scrim').classList.remove('on');
+    document.getElementById('sheet').classList.remove('on');
+  }
+  function validate() {
+    var ok = compose.to && document.getElementById('reqtext').value.trim().length > 0;
+    document.getElementById('send').disabled = !ok;
+  }
+
+  function bindApp() {
+    document.getElementById('fab').addEventListener('click', openSheet);
+    document.getElementById('scrim').addEventListener('click', closeSheet);
+    document.getElementById('send').addEventListener('click', async function () {
+      var text = document.getElementById('reqtext').value.trim();
+      var due = document.getElementById('reqdue').value || null;
+      if (!compose.to || !text) return;
+      var toName = byId[compose.to].name;
+      closeSheet();
+      await addRequest(compose.to, text, due);
+      tab = 'out'; render();
+      showToast(toName + '님에게 요청을 보냈어요');
+    });
+  }
+
+  function switchUser() {
+    me = null;
+    sSet(K_ME, '', false);
+    document.getElementById('root').innerHTML = '';
+    render();
+  }
+
+  // ----------------- 토스트 -----------------
+  var toastTimer;
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    if (!t) return;
+    document.getElementById('toasttext').textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('on'); }, 2600);
+  }
+
+  // ----------------- 새로고침 / 폴링(알림 흉내) -----------------
+  async function refresh(force) {
+    var arr = await getAll();
+    var sig = JSON.stringify(arr.map(function (r) { return [r.id, r.status]; }));
+    // 새로 들어온 안읽음 요청 감지 → 토스트(푸시 흉내)
+    if (me) {
+      arr.forEach(function (r) {
+        if (r.to === me && r.status === 'unread' && !knownIncoming[r.id]) {
+          knownIncoming[r.id] = true;
+          if (lastSig !== '' && document.querySelector('.app')) {
+            showToast('🔔 ' + byId[r.from].name + '님의 새 요청이 도착했어요');
+          }
+        }
+      });
+    }
+    if (force || sig !== lastSig) { cache = arr; lastSig = sig; render(); }
+    else { cache = arr; }
+  }
+
+  // ----------------- 부팅 -----------------
+  (async function init() {
+    me = await sGet(K_ME, false) || null;
+    await seedIfNeeded();
+    var arr = await getAll();
+    arr.forEach(function (r) { if (r.to === me && r.status === 'unread') knownIncoming[r.id] = true; });
+    cache = arr; lastSig = JSON.stringify(arr.map(function (r) { return [r.id, r.status]; }));
+    render();
+    setInterval(function () { refresh(false); }, 3500);
+  })();
+})();
+</script>
