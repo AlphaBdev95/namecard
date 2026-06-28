@@ -11,6 +11,7 @@ import {
   type RequestStatus,
 } from "@/lib/types";
 import ComposeSheet from "@/components/ComposeSheet";
+import { enablePush, pushSupported } from "@/lib/push";
 
 type Tab = "in" | "out";
 
@@ -37,6 +38,9 @@ export default function Inbox({
   const [composeOpen, setComposeOpen] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [pushPerm, setPushPerm] = useState<NotificationPermission | "unsupported">(
+    "default",
+  );
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 처음에 이미 알고 있던 안읽음 요청 — 실시간 토스트 중복 방지.
@@ -95,6 +99,25 @@ export default function Inbox({
     };
   }, [supabase, me.id, byId, flash]);
 
+  // ---------- 푸시 알림 ----------
+  useEffect(() => {
+    if (!pushSupported()) {
+      setPushPerm("unsupported");
+      return;
+    }
+    setPushPerm(Notification.permission);
+    // 이미 허용돼 있으면 구독 정보를 조용히 최신화.
+    if (Notification.permission === "granted") {
+      enablePush(supabase, me.id).catch(() => {});
+    }
+  }, [supabase, me.id]);
+
+  async function turnOnPush() {
+    const ok = await enablePush(supabase, me.id);
+    setPushPerm(pushSupported() ? Notification.permission : "unsupported");
+    flash(ok ? "🔔 알림을 켰어요" : "알림 권한을 허용해 주세요");
+  }
+
   // ---------- 동작 ----------
   async function setStatus(id: string, status: RequestStatus) {
     setBusyId(id);
@@ -133,6 +156,12 @@ export default function Inbox({
     setComposeOpen(false);
     setTab("out");
     flash(`${byId[toId]?.name ?? "상대"}님에게 요청을 보냈어요`);
+    // 받는 사람에게 폰 푸시 알림 발송(설정돼 있으면). 실패해도 무시.
+    fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestId: data.id }),
+    }).catch(() => {});
   }
 
   async function signOut() {
@@ -205,6 +234,12 @@ export default function Inbox({
 
       {/* 리스트 */}
       <div className="list">
+        {pushPerm === "default" && (
+          <div className="pushbanner">
+            <span>📣 새 요청을 폰 알림으로 받을까요?</span>
+            <button onClick={turnOnPush}>알림 켜기</button>
+          </div>
+        )}
         {active.length === 0 && (!showDone || done.length === 0) ? (
           <EmptyState tab={tab} />
         ) : (

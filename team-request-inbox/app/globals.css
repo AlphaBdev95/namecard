@@ -266,6 +266,38 @@ button {
   padding: 8px 16px 120px;
 }
 
+.pushbanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--signal-bg);
+  border: 1px solid #f3dcbd;
+  color: #a8631a;
+  border-radius: 14px;
+  padding: 11px 12px 11px 14px;
+  margin: 6px 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.pushbanner span {
+  flex: 1;
+  min-width: 0;
+}
+.pushbanner button {
+  flex: none;
+  border: none;
+  background: var(--signal);
+  color: #fff;
+  font-weight: 800;
+  font-size: 12.5px;
+  padding: 7px 13px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.pushbanner button:active {
+  transform: scale(0.96);
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--line);

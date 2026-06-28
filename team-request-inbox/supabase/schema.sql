@@ -135,3 +135,43 @@ create policy "recipient can update status"
 -- 보낸 사람이 상태 변화를 실시간으로 보고, 받는 사람이 새 요청을 즉시 받도록.
 -- =============================================================
 alter publication supabase_realtime add table public.requests;
+
+-- =============================================================
+-- 7. 웹 푸시 알림용 구독 테이블
+-- =============================================================
+create table if not exists public.push_subscriptions (
+  endpoint     text primary key,
+  user_id      uuid not null references public.profiles (id) on delete cascade,
+  subscription jsonb not null,
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists push_subscriptions_user_idx
+  on public.push_subscriptions (user_id);
+
+alter table public.push_subscriptions enable row level security;
+
+drop policy if exists "own push subscriptions" on public.push_subscriptions;
+create policy "own push subscriptions"
+  on public.push_subscriptions for all
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- 푸시 대상 조회 함수: "내가 보낸 요청"의 받는 사람 구독만 반환.
+create or replace function public.push_targets(req_id uuid)
+returns table (subscription jsonb)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return query
+  select ps.subscription
+  from public.requests r
+  join public.push_subscriptions ps on ps.user_id = r.to_user
+  where r.id = req_id and r.from_user = auth.uid();
+end;
+$$;
+
+grant execute on function public.push_targets(uuid) to authenticated;
