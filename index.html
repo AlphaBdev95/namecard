@@ -297,7 +297,7 @@
                 <option value="abbg.co.kr">abbg.co.kr</option>
                 <option value="blan.co.kr">blan.co.kr</option>
                 <option value="anpc.kr">anpc.kr</option>
-                <option value="testipie.co.kr">testipie.co.kr</option>
+                <option value="testipie.com">testipie.com</option>
                 <option value="__custom">기타 (직접 입력)</option>
               </select>
             </div>
@@ -878,12 +878,12 @@ function blanSignature(t,d){
   const cr=(lab,val)=> val?`<div><span style="display:inline-block;width:18px;color:#7c7c7c">${lab}</span>${esc(val)}</div>`:'';
   return `<div class="esig" style="position:relative;width:950px;height:300px;background:#1c1d1d;font-family:${SF};overflow:hidden">
     <img src="${BLAN_SIG_RIGHT}" alt="BLAN" style="position:absolute;left:555px;top:0;width:395px;height:190px;border:0;display:block">
-    <div style="position:absolute;left:45px;top:29px;font-size:15px;letter-spacing:.01em;color:#f2f2f2">${name}</div>
-    <div style="position:absolute;left:226px;top:30px;font-size:14px;letter-spacing:.01em;color:#e6e6e6">${title}</div>
+    <div style="position:absolute;left:45px;top:31px;font-size:17px;font-weight:700;letter-spacing:.01em;color:#ffffff">${name}</div>
+    <div style="position:absolute;left:270px;top:31px;font-size:14px;letter-spacing:.01em;color:#cfcfcf">${title}</div>
     <div style="position:absolute;left:46px;top:103px;font-size:13px;line-height:20px;color:#f2f2f2;white-space:nowrap">
       ${cr('M',d.phone)}${cr('E',d.email)}${cr('F',d.fax)}
     </div>
-    <div style="position:absolute;left:227px;top:124px;font-size:12.5px;line-height:18px;color:#8a8a8a">2F, 76, Hwagok-ro 66-gil, Gangseo-gu, Seoul,<br>Republic of Korea</div>
+    <div style="position:absolute;left:270px;top:124px;font-size:12.5px;line-height:18px;color:#8a8a8a">2F, 76, Hwagok-ro 66-gil, Gangseo-gu, Seoul,<br>Republic of Korea</div>
     <div style="position:absolute;left:0;top:190px;width:950px;height:110px;background:#c8c9ca">
       <div style="position:absolute;left:46px;top:16px;width:858px;font:400 10px ${SF};line-height:18px;color:#3a3735">※ 본 이메일 내용과 모든 첨부파일은 ㈜블랜과 수신인만의 기밀로서, 지정된 수신인만이 이용할 수 있습니다.&nbsp; 만일 일부라도 무단으로 보유, 전송, 공개, 복제, 이용할 경우<br>법적 조치를 취할 수 있습니다. 귀하가 지정된 수신인이 아니라면 즉시 발송인에게 회신 E-mail 또는 위 연락처로 사실을 알려주시고, 해당 메일은 즉시 삭제하여 주시기 바랍니다.</div>
       <div style="position:absolute;left:46px;top:62px;font:400 11px ${SF};color:#231f20">블랜은 윤리규범을 준수합니다.&nbsp; * 윤리위반 신고 : ceo@blan.co.kr</div>
@@ -953,7 +953,7 @@ function testipieSignature(t,d){
     </div>
     <div style="position:absolute;left:0;top:228px;width:966px;height:138px;background:#c9cacb">
       <div style="position:absolute;left:82px;top:19px;width:842px;font:400 13px ${SF};line-height:21px;color:#33302d">${disclaimer}</div>
-      <div style="position:absolute;left:82px;top:92px;font:400 14px ${SF};color:#231815">테스티파이는 윤리규범을 준수합니다. *윤리위반 신고 : kyr@testipie.co.kr</div>
+      <div style="position:absolute;left:82px;top:92px;font:400 14px ${SF};color:#231815">테스티파이는 윤리규범을 준수합니다. *윤리위반 신고 : kyr@testipie.com</div>
     </div>
   </div>`;
 }
