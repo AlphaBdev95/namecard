@@ -232,6 +232,48 @@
   .tp-back .tp-role{font-size:12px;font-weight:500;color:#6e7175}
   .tp-back .tp-contact{position:absolute;left:262px;top:203px;font-size:11.5px;line-height:18px;color:#5a5d62}
   .tp-back .tp-contact b{display:inline-block;width:16px;color:#20201d;font-weight:700}
+
+  /* ===== 브랜드 관리자 ===== */
+  .bm-fab{position:fixed;right:22px;bottom:22px;width:52px;height:52px;border-radius:50%;border:none;background:var(--ink);color:#fff;font-size:21px;cursor:pointer;box-shadow:0 4px 16px rgba(20,21,25,.35);z-index:300}
+  .bm-fab:hover{background:#000}
+  .bm-overlay{position:fixed;inset:0;background:rgba(15,17,22,.55);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+  .bm-overlay.open{display:flex}
+  .bm-modal{background:#fff;border-radius:16px;width:min(1320px,100%);height:min(880px,100%);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+  .bm-head{display:flex;align-items:center;gap:12px;padding:15px 20px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .bm-head h3{margin:0;font-size:15px;font-weight:700}
+  .bm-cloudstat{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .bm-close{border:none;background:none;font-size:22px;cursor:pointer;color:var(--muted);padding:2px 8px;border-radius:8px}
+  .bm-close:hover{background:var(--paper)}
+  .bm-body{flex:1;display:flex;min-height:0}
+  .bm-side{width:220px;flex:0 0 auto;border-right:1px solid var(--line);padding:16px;overflow:auto}
+  .bm-side-title{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .bm-row{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;cursor:pointer;font-size:13px}
+  .bm-row:hover{background:var(--paper)}
+  .bm-row.on{background:var(--accent-soft);font-weight:600}
+  .bm-row .del{margin-left:auto;color:#c33;font-size:11px;opacity:.65}
+  .bm-row .del:hover{opacity:1}
+  .bm-main{flex:1;display:flex;min-width:0}
+  .bm-empty{margin:auto;color:var(--muted);font-size:13px}
+  .bm-canvaswrap{flex:1;overflow:auto;padding:26px;background:#e7e9ee;display:flex;align-items:flex-start}
+  .bm-tabs{display:flex;gap:6px;margin-bottom:0}
+  .bm-tab{font:inherit;font-size:12px;font-weight:600;padding:7px 13px;border-radius:8px;border:none;background:#fff;cursor:pointer;box-shadow:0 1px 3px rgba(20,21,25,.1)}
+  .bm-tab.on{background:var(--ink);color:#fff}
+  .bm-canvas{position:relative;box-shadow:0 2px 18px rgba(20,21,25,.25);flex:0 0 auto}
+  .bm-hit{position:absolute;border:1.5px dashed rgba(20,120,255,0);cursor:move;box-sizing:border-box;z-index:5}
+  .bm-hit:hover{border-color:rgba(20,120,255,.55)}
+  .bm-hit.sel{border-color:#1a73ff;background:rgba(26,115,255,.08)}
+  .bm-panel{width:270px;flex:0 0 auto;border-left:1px solid var(--line);padding:18px;overflow:auto;background:#fff}
+  .bm-panel h4{font-size:11px;margin:14px 0 10px;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .bm-panel h4:first-child{margin-top:0}
+  .bm-f{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+  .bm-f label{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  .bm-f input[type=text],.bm-f input[type=number],.bm-f select{font:inherit;font-size:12.5px;padding:7px 9px;border:1px solid var(--line);border-radius:7px;width:100%}
+  .bm-f input[type=color]{width:100%;height:30px;border:1px solid var(--line);border-radius:7px;padding:2px;cursor:pointer}
+  .bm-2col{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .bm-actions{display:flex;flex-direction:column;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .bm-addrow{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .bm-addrow button{flex:1;min-width:76px}
+  .bm-note{font-size:11px;color:var(--muted);line-height:1.6}
 </style>
 </head>
 <body>
@@ -357,6 +399,29 @@
   </p>
 </div>
 
+<div class="bm-overlay" id="bmOverlay" aria-hidden="true">
+  <div class="bm-modal">
+    <div class="bm-head">
+      <h3>브랜드 관리자</h3>
+      <span class="bm-cloudstat" id="bmCloudStat"></span>
+      <button type="button" class="bm-close" id="bmClose" aria-label="닫기">&times;</button>
+    </div>
+    <div class="bm-body">
+      <div class="bm-side">
+        <div class="bm-side-title">공통 설정</div>
+        <div id="bmOrgRowWrap"></div>
+        <div class="bm-side-title" style="margin-top:20px">기존 브랜드 (미세조정)</div>
+        <div id="bmExistingList"></div>
+        <div class="bm-side-title" style="margin-top:20px">커스텀 브랜드</div>
+        <div id="bmCustomList"></div>
+        <button type="button" class="btn primary" id="bmNewBrand" style="margin-top:14px;width:100%">+ 새 브랜드 만들기</button>
+      </div>
+      <div class="bm-main" id="bmMain"><div class="bm-empty">왼쪽에서 브랜드를 선택하세요.</div></div>
+    </div>
+  </div>
+</div>
+<button type="button" class="bm-fab" id="bmOpenBtn" title="브랜드 관리자">&#9881;</button>
+
 <script>
 const $ = id => document.getElementById(id);
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -387,30 +452,62 @@ if($('bhWm')) $('bhWm').innerHTML=WORDMARK_SVG;
   document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ g.classList.remove('open'); g.setAttribute('aria-hidden','true'); }});
 })();
 
+/* ---------- 브랜드 미세조정 레이어 (LAYOUT overrides) ---------- */
+let LAYOUT = {};          // { brandKey: { front:{f:{left,top,...}}, back:{...}, signature:{...} } }
+let CUSTOM_BRANDS = {};   // { brandKey: schema } — 신규 등록 브랜드
+function applyOverrides(root, key, face){
+  const cfg = (LAYOUT[key] && LAYOUT[key][face]) || {};
+  root.querySelectorAll('[data-f]').forEach(elx=>{
+    const o = cfg[elx.dataset.f]; if(!o) return;
+    if(o.left!=null || o.top!=null){ elx.style.position='absolute'; }
+    if(o.left!=null) elx.style.left=o.left+'px';
+    if(o.top!=null) elx.style.top=o.top+'px';
+    if(o.right!=null) elx.style.right=o.right+'px';
+    if(o.width!=null) elx.style.width=o.width+'px';
+    if(o.fontSize!=null) elx.style.fontSize=o.fontSize+'px';
+    if(o.fontWeight!=null) elx.style.fontWeight=o.fontWeight;
+    if(o.color!=null) elx.style.color=o.color;
+    if(o.letterSpacing!=null) elx.style.letterSpacing=o.letterSpacing+'px';
+    if(o.lineHeight!=null) elx.style.lineHeight=o.lineHeight;
+  });
+  return root;
+}
+function withOverrides(html, key, face){
+  const div=document.createElement('div'); div.innerHTML=html;
+  applyOverrides(div, key, face);
+  return div.innerHTML;
+}
+function frontAssetOr(key, staticHtml, w, h2){
+  const a = LAYOUT[key] && LAYOUT[key].frontAsset;
+  return a ? `<img src="${a}" style="width:${w}px;height:${h2}px;display:block" alt="">` : staticHtml;
+}
+
 function alphaFront(t){
   const n = el('div','biz-card face-front');
-  const mark = t.useLogo ? `<div class="mark-logo">${SYMBOL_SVG}</div>` : `<div class="mark">${esc(t.mark)}</div>`;
-  n.innerHTML = `<div class="slogan">${esc(t.slogan)}</div>`+mark;
+  const mark = t.useLogo ? `<div class="mark-logo" data-f="mark">${SYMBOL_SVG}</div>` : `<div class="mark" data-f="mark">${esc(t.mark)}</div>`;
+  n.innerHTML = `<div class="slogan" data-f="slogan">${esc(t.slogan)}</div>`+mark;
+  applyOverrides(n,'alphabrothers','front');
   return n;
 }
 function alphaBack(t,d){
   const n = el('div','biz-card face-back');
   const role = [d.dept,d.title].filter(Boolean).map(esc).join(' / ');
-  const r = (lab,val)=> val ? `<div class="r"><b>${lab}</b>${esc(val)}</div>`:'';
+  const r = (lab,val,key)=> val ? `<div class="r" data-f="${key}"><b>${lab}</b>${esc(val)}</div>`:'';
   const pf = (d.phone||d.fax)
-     ? `<div class="r">${d.phone?`<b>P.</b>${esc(d.phone)}`:''}${(d.phone&&d.fax)?'&nbsp;&nbsp;&nbsp;':''}${d.fax?`<b>F.</b>${esc(d.fax)}`:''}</div>` : '';
+     ? `<div class="r" data-f="rowPF">${d.phone?`<b>P.</b>${esc(d.phone)}`:''}${(d.phone&&d.fax)?'&nbsp;&nbsp;&nbsp;':''}${d.fax?`<b>F.</b>${esc(d.fax)}`:''}</div>` : '';
   n.innerHTML = `
-    ${t.useLogo ? `<div class="wm-logo">${WORDMARK_SVG}</div>` : `<div class="wm">${t.wordmark}</div>`}
-    ${d.cert?`<div class="cert">${esc(d.cert)}</div>`:''}
-    <div class="info">
-      <div class="nm">${esc(d.name||'이름')}</div>
-      ${role?`<div class="role">${role}</div>`:''}
+    ${t.useLogo ? `<div class="wm-logo" data-f="wm">${WORDMARK_SVG}</div>` : `<div class="wm" data-f="wm">${t.wordmark}</div>`}
+    ${d.cert?`<div class="cert" data-f="cert">${esc(d.cert)}</div>`:''}
+    <div class="info" data-f="info">
+      <div class="nm" data-f="name">${esc(d.name||'이름')}</div>
+      ${role?`<div class="role" data-f="role">${role}</div>`:''}
       <div class="rows">
-        ${r('A.',d.address)}
+        ${r('A.',d.address,'rowA')}
         ${pf}
-        ${r('E.',d.email)}
+        ${r('E.',d.email,'rowE')}
       </div>
     </div>`;
+  applyOverrides(n,'alphabrothers','back');
   return n;
 }
 function alphaSignature(t,d){
@@ -435,21 +532,22 @@ function alphaSignature(t,d){
   const certTop = wmTop + 28;
   const certHTML = hasCert ? `<div class="esig-cert" style="position:absolute;left:83px;top:${certTop}px;white-space:nowrap;font:500 13px ${SF};color:#fff">${esc(d.cert)}</div>` : '';
   const disclaimer = `※ 본 이메일 내용과 모든 첨부파일은 ${company}와 수신인만의 기밀로서, 지정된 수신인만이 이용할 수 있습니다. 만일 일부라도 무단으로 보유, 전송, 공개, 복제, 이용할 경우 법적 조치를 취할 수 있습니다. 귀하가 지정된 수신인이 아니라면 즉시 발송인에게 회신 E-mail 또는 위 연락처로 사실을 알려주시고, 해당 메일은 즉시 삭제하여 주시기 바랍니다. 감사합니다.`;
-  return `<div class="esig" style="position:relative;width:960px;height:360px;background:#161519;font-family:${SF};overflow:hidden">
-    <div style="position:absolute;top:24px;right:59px;font:400 12px ${SF};letter-spacing:.04em;color:#fff">${slogan}</div>
-    <div class="esig-wm" style="position:absolute;left:83px;top:${wmTop}px;height:21px;line-height:0;color:#fff">${wm}</div>
+  const html = `<div class="esig" style="position:relative;width:960px;height:360px;background:#161519;font-family:${SF};overflow:hidden">
+    <div data-f="slogan" style="position:absolute;top:24px;right:59px;font:400 12px ${SF};letter-spacing:.04em;color:#fff">${slogan}</div>
+    <div class="esig-wm" data-f="wm" style="position:absolute;left:83px;top:${wmTop}px;height:21px;line-height:0;color:#fff">${wm}</div>
     ${certHTML}
-    <div style="position:absolute;left:381px;top:80px;width:2px;height:94px;background:rgba(255,255,255,.55)"></div>
-    <div style="position:absolute;left:428px;top:78px;right:59px">
-      <div style="white-space:nowrap"><span style="font:700 26px ${SF};letter-spacing:.16em;color:#fff">${name}</span>${title?`<span style="font:500 15px ${SF};color:#c2c6cf;margin-left:6px">${title}</span>`:''}</div>
-      <div style="font:400 16px ${SF};color:#fff;margin-top:15px">${company}&nbsp;&nbsp;|&nbsp;&nbsp;${addr}</div>
-      <div style="font:400 15px ${SF};color:#fff;margin-top:9px;white-space:nowrap">${contactLine}</div>
+    <div data-f="divider" style="position:absolute;left:381px;top:80px;width:2px;height:94px;background:rgba(255,255,255,.55)"></div>
+    <div data-f="rightBlock" style="position:absolute;left:428px;top:78px;right:59px">
+      <div style="white-space:nowrap"><span data-f="name" style="font:700 26px ${SF};letter-spacing:.16em;color:#fff">${name}</span>${title?`<span data-f="title" style="font:500 15px ${SF};color:#c2c6cf;margin-left:6px">${title}</span>`:''}</div>
+      <div data-f="companyAddr" style="font:400 16px ${SF};color:#fff;margin-top:15px">${company}&nbsp;&nbsp;|&nbsp;&nbsp;${addr}</div>
+      <div data-f="contact" style="font:400 15px ${SF};color:#fff;margin-top:9px;white-space:nowrap">${contactLine}</div>
     </div>
-    <div style="position:absolute;left:0;top:225px;width:960px;height:135px;background:#c9caca">
-      <div style="position:absolute;left:80px;top:23px;width:821px;font:400 13px ${SF};line-height:21px;color:#33302d">${disclaimer}</div>
-      <div style="position:absolute;left:80px;top:96px;font:400 14px ${SF};color:#231815">알파브라더스는 윤리규범을 준수합니다. *윤리위반 신고 : kyr@alphabrothers.co.kr</div>
+    <div data-f="noticeBand" style="position:absolute;left:0;top:225px;width:960px;height:135px;background:#c9caca">
+      <div data-f="disclaimer" style="position:absolute;left:80px;top:23px;width:821px;font:400 13px ${SF};line-height:21px;color:#33302d">${disclaimer}</div>
+      <div data-f="ethics" style="position:absolute;left:80px;top:96px;font:400 14px ${SF};color:#231815">알파브라더스는 윤리규범을 준수합니다. *윤리위반 신고 : kyr@alphabrothers.co.kr</div>
     </div>
   </div>`;
+  return withOverrides(html,'alphabrothers','signature');
 }
 
 /* ---------- 브랜드 레지스트리 (확장 지점) ---------- */
@@ -665,47 +763,118 @@ const BLAN_FRONT_SVG = `<?xml version="1.0" encoding="UTF-8"?>
   }
 };
 
+/* ---------- 신규 브랜드(커스텀) 범용 렌더 엔진 ---------- */
+function customFieldValue(elc, d){
+  if(!elc.field || elc.field==='static') return elc.text||'';
+  const v = (d && d[elc.field]) || '';
+  if(!v) return '';
+  return (elc.text||'') + esc(v);
+}
+function customElementNode(elc, d){
+  if(elc.type==='image'){
+    const img=document.createElement('img'); img.setAttribute('data-f',elc.id); img.src=elc.src||''; img.alt='';
+    img.style.cssText=`position:absolute;left:${elc.x||0}px;top:${elc.y||0}px;width:${elc.w||100}px;height:${elc.h||100}px;display:block`;
+    return img;
+  }
+  if(elc.type==='line'){
+    const dv=document.createElement('div'); dv.setAttribute('data-f',elc.id);
+    dv.style.cssText=`position:absolute;left:${elc.x||0}px;top:${elc.y||0}px;width:${elc.w||100}px;height:${elc.h||2}px;background:${elc.color||'#000'}`;
+    return dv;
+  }
+  const dv=document.createElement('div'); dv.setAttribute('data-f',elc.id);
+  const txt = customFieldValue(elc,d);
+  dv.innerHTML = txt || `<span style="opacity:.35">${esc(elc.placeholder||elc.field||'텍스트')}</span>`;
+  dv.style.cssText=`position:absolute;left:${elc.x||0}px;top:${elc.y||0}px;${elc.w?`width:${elc.w}px;`:''}font-size:${elc.fontSize||14}px;font-weight:${elc.fontWeight||400};color:${elc.color||'#000'};letter-spacing:${elc.letterSpacing||0}px;${elc.lineHeight?`line-height:${elc.lineHeight}px;`:''}text-align:${elc.align||'left'};white-space:${elc.wrap?'normal':'nowrap'}`;
+  return dv;
+}
+function renderCustomCard(schema, d, faceKey){
+  const face = schema[faceKey]; if(!face) return null;
+  const wrap = el('div','biz-card');
+  const bgImg = face.bg && face.bg.indexOf('data:')===0;
+  wrap.style.cssText = `width:540px;height:300px;position:relative;overflow:hidden;font-family:var(--sans);background:${bgImg?'#fff':(face.bg||'#fff')}`;
+  if(bgImg){ const img=el('img'); img.src=face.bg; img.style.cssText='position:absolute;left:0;top:0;width:540px;height:300px;display:block'; wrap.appendChild(img); }
+  (face.elements||[]).forEach(elc=> wrap.appendChild(customElementNode(elc,d)));
+  applyOverrides(wrap, schema.key, faceKey);
+  return wrap;
+}
+function renderCustomSignature(schema, d){
+  const face = schema.signature; if(!face) return '';
+  const wrap = el('div','esig');
+  const bgImg = face.bg && face.bg.indexOf('data:')===0;
+  const w=face.w||960, h2=face.h||360;
+  wrap.style.cssText = `position:relative;width:${w}px;height:${h2}px;overflow:hidden;font-family:'Pretendard Variable','Pretendard',-apple-system,sans-serif;background:${bgImg?'#fff':(face.bg||'#fff')}`;
+  if(bgImg){ const img=el('img'); img.src=face.bg; img.style.cssText=`position:absolute;left:0;top:0;width:${w}px;height:${h2}px;display:block`; wrap.appendChild(img); }
+  (face.elements||[]).forEach(elc=> wrap.appendChild(customElementNode(elc,d)));
+  applyOverrides(wrap, schema.key, 'signature');
+  return wrap.outerHTML;
+}
+function instantiateCustomBrand(key, schema){
+  BRANDS[key] = {
+    name: schema.name||key, tag: schema.tag||'커스텀', sw: schema.sw||'#6b7280', swText:(schema.swText||(schema.name||key).slice(0,2)),
+    custom:true, twoSided: schema.front ? true : false,
+    front(d){ return schema.front ? renderCustomCard(schema,d,'front') : null; },
+    back(d){ return renderCustomCard(schema,d,'back'); }
+  };
+  if(schema.signature){ BRANDS[key].signature = (d)=>renderCustomSignature(schema,d); }
+  if(schema.domain){
+    const sel=$('emailDomain');
+    if(sel && !Array.from(sel.options).some(o=>o.value===schema.domain)){
+      const opt=document.createElement('option'); opt.value=schema.domain; opt.textContent=schema.domain;
+      sel.insertBefore(opt, sel.querySelector('option[value="__custom"]'));
+    }
+  }
+}
+function refreshCustomBrands(){
+  Object.entries(CUSTOM_BRANDS).forEach(([key,schema])=>{ schema.key=key; instantiateCustomBrand(key,schema); });
+  renderChips();
+}
+
 /* ---------- chips ---------- */
 const selected = new Set();
 const brandsBox = $('brands');
-Object.entries(BRANDS).forEach(([key,b])=>{
-  const chip = el('div','chip'+(b.soon?' soon':''));
-  chip.setAttribute('role','checkbox');
-  chip.setAttribute('aria-checked','false');
-  chip.tabIndex = 0;
-  chip.innerHTML = `
-    <span class="swatch${b.sym?' has-sym':''}${b.symMark?' has-symmark':''}${b.wmlogo?' has-wm':''}" style="background:${b.sw}">${b.sym || b.symMark || b.wmlogo || b.swText}</span>
-    <span><span class="nm">${b.name}</span>${b.soon?`<span class="tg">${b.tag}</span>`:''}</span>
-    <span class="tick">✓</span>`;
-  function toggle(){
-    if(b.soon) return;
-    const on = !selected.has(key);
-    on ? selected.add(key) : selected.delete(key);
-    chip.classList.toggle('on', on);
-    chip.setAttribute('aria-checked', on?'true':'false');
-    $('go').disabled = selected.size===0;
-  }
-  chip.addEventListener('click',toggle);
-  chip.addEventListener('keydown',e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(); }});
-  if(key==='alphabrothers'){ selected.add(key); chip.classList.add('on'); chip.setAttribute('aria-checked','true'); }
-  brandsBox.appendChild(chip);
-});
-$('go').disabled = selected.size===0;
+function renderChips(){
+  brandsBox.innerHTML='';
+  Object.entries(BRANDS).forEach(([key,b])=>{
+    const chip = el('div','chip'+(b.soon?' soon':''));
+    chip.setAttribute('role','checkbox');
+    chip.setAttribute('aria-checked', selected.has(key)?'true':'false');
+    chip.tabIndex = 0;
+    chip.innerHTML = `
+      <span class="swatch${b.sym?' has-sym':''}${b.symMark?' has-symmark':''}${b.wmlogo?' has-wm':''}" style="background:${b.sw}">${b.sym || b.symMark || b.wmlogo || b.swText}</span>
+      <span><span class="nm">${b.name}</span>${(b.soon||b.custom)?`<span class="tg">${b.custom?'커스텀':b.tag}</span>`:''}</span>
+      <span class="tick">✓</span>`;
+    function toggle(){
+      if(b.soon) return;
+      const on = !selected.has(key);
+      on ? selected.add(key) : selected.delete(key);
+      chip.classList.toggle('on', on);
+      chip.setAttribute('aria-checked', on?'true':'false');
+      $('go').disabled = selected.size===0;
+    }
+    chip.addEventListener('click',toggle);
+    chip.addEventListener('keydown',e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); toggle(); }});
+    if(selected.has(key)){ chip.classList.add('on'); }
+    brandsBox.appendChild(chip);
+  });
+  $('go').disabled = selected.size===0;
+}
+selected.add('alphabrothers');
+renderChips();
 const brandToggle=$('brandToggle');
 brandToggle.addEventListener('click',()=>{ const c=brandsBox.classList.toggle('collapsed'); brandToggle.textContent=c?'변경':'접기'; });
 
 /* ---------- 부서 검색 드롭다운 ---------- */
-const ORG = [
+let ORG = [
   {div:'대표이사', teams:[]},
-  {div:'전문위원실', teams:[]},
-  {div:'기업부설연구소', teams:[]},
   {div:'어드바이저본부', teams:['사업기획1팀','사업기획2팀','블랜팀']},
   {div:'브랜드본부', teams:['그래픽1팀','그래픽2팀','그래픽3팀','UXUI팀','비주얼아트팀','B전략기획팀','개발팀']},
   {div:'크리에이티브본부', teams:['그로스마케팅팀']},
   {div:'데이터전략본부', teams:['데이터솔루션팀','인텔리전스팀','스케일업1팀','스케일업2팀']},
   {div:'엑스퍼트본부', teams:['재무팀','인사총무팀','영업지원팀','E전략기획팀']},
-  {div:'그로스본부', teams:['그로스파이낸스1팀','그로스파이낸스2팀']},
-  {div:'액셀러레이트본부', teams:['AI팀','AX팀','프로젝트팀']}
+  {div:'그로스본부', teams:['그로스파이낸스1팀','그로스파이낸스2팀','재무AX팀']},
+  {div:'액셀러레이트본부', teams:['AI팀','AX팀','프로젝트팀']},
+  {div:'기업부설연구소', teams:[]},
+  {div:'전문위원실', teams:[]}
 ];
 let deptValue = '';
 const deptInput = $('deptInput'), deptPanel = $('deptPanel');
@@ -854,84 +1023,88 @@ $('go').addEventListener('click',()=>{
 
 function blanFront(){
   const n = el('div','biz-card blan-front');
-  n.innerHTML = BLAN_FRONT_SVG;
+  n.innerHTML = frontAssetOr('blan', BLAN_FRONT_SVG, 540, 300);
   return n;
 }
 function blanBack(t,d){
   const n = el('div','biz-card blan-back');
   const role = [d.title,d.dept].filter(Boolean).map(esc).join('  ·  ');
-  const line = (lab,val)=> val ? `<div class="bl-r"><b>${lab}</b>&nbsp;${esc(val)}</div>` : '';
+  const line = (lab,val,key)=> val ? `<div class="bl-r" data-f="${key}"><b>${lab}</b>&nbsp;${esc(val)}</div>` : '';
   n.innerHTML = `
-    <div class="bl-wm">${BLAN_WM_SVG}</div>
-    <div class="bl-name">${esc(d.name||'이름')}</div>
-    ${role?`<div class="bl-role">${role}</div>`:''}
-    <div class="bl-div"></div>
-    <div class="bl-contact">
-      ${line('Mobile.',d.phone)}
-      ${line('E-mail.',d.email)}
-      ${line('Fax.',d.fax)}
+    <div class="bl-wm" data-f="wm">${BLAN_WM_SVG}</div>
+    <div class="bl-name" data-f="name">${esc(d.name||'이름')}</div>
+    ${role?`<div class="bl-role" data-f="role">${role}</div>`:''}
+    <div class="bl-div" data-f="divider"></div>
+    <div class="bl-contact" data-f="contact">
+      ${line('Mobile.',d.phone,'rowM')}
+      ${line('E-mail.',d.email,'rowE')}
+      ${line('Fax.',d.fax,'rowF')}
     </div>
-    <div class="bl-addr">2F, 76, Hwagok-ro 66-gil, Gangseo-gu, Seoul,<br>Republic of Korea</div>
-    <div class="bl-www">www.blan.co.kr</div>`;
+    <div class="bl-addr" data-f="addr">2F, 76, Hwagok-ro 66-gil, Gangseo-gu, Seoul,<br>Republic of Korea</div>
+    <div class="bl-www" data-f="www">www.blan.co.kr</div>`;
+  applyOverrides(n,'blan','back');
   return n;
 }
 function blanSignature(t,d){
   const SF="'Pretendard Variable','Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif";
   const name=esc(d.name||''); const title=esc(d.title||d.dept||'');
   const cr=(lab,val)=> val?`<div><span style="display:inline-block;width:18px;color:#7c7c7c">${lab}</span>${esc(val)}</div>`:'';
-  return `<div class="esig" style="position:relative;width:950px;height:300px;background:#1c1d1d;font-family:${SF};overflow:hidden">
-    <img src="${BLAN_SIG_RIGHT}" alt="BLAN" style="position:absolute;left:555px;top:0;width:395px;height:190px;border:0;display:block">
-    <div style="position:absolute;left:45px;top:31px;font-size:17px;font-weight:700;letter-spacing:.01em;color:#ffffff">${name}</div>
-    <div style="position:absolute;left:270px;top:31px;font-size:14px;letter-spacing:.01em;color:#cfcfcf">${title}</div>
-    <div style="position:absolute;left:46px;top:103px;font-size:13px;line-height:20px;color:#f2f2f2;white-space:nowrap">
+  const html = `<div class="esig" style="position:relative;width:950px;height:300px;background:#1c1d1d;font-family:${SF};overflow:hidden">
+    <img data-f="rightImg" src="${BLAN_SIG_RIGHT}" alt="BLAN" style="position:absolute;left:555px;top:0;width:395px;height:190px;border:0;display:block">
+    <div data-f="name" style="position:absolute;left:45px;top:31px;font-size:17px;font-weight:700;letter-spacing:.01em;color:#ffffff">${name}</div>
+    <div data-f="title" style="position:absolute;left:270px;top:31px;font-size:14px;letter-spacing:.01em;color:#cfcfcf">${title}</div>
+    <div data-f="contact" style="position:absolute;left:46px;top:103px;font-size:13px;line-height:20px;color:#f2f2f2;white-space:nowrap">
       ${cr('M',d.phone)}${cr('E',d.email)}${cr('F',d.fax)}
     </div>
-    <div style="position:absolute;left:270px;top:124px;font-size:12.5px;line-height:18px;color:#8a8a8a">2F, 76, Hwagok-ro 66-gil, Gangseo-gu, Seoul,<br>Republic of Korea</div>
-    <div style="position:absolute;left:0;top:190px;width:950px;height:110px;background:#c8c9ca">
-      <div style="position:absolute;left:46px;top:16px;width:858px;font:400 10px ${SF};line-height:18px;color:#3a3735">※ 본 이메일 내용과 모든 첨부파일은 ㈜블랜과 수신인만의 기밀로서, 지정된 수신인만이 이용할 수 있습니다.&nbsp; 만일 일부라도 무단으로 보유, 전송, 공개, 복제, 이용할 경우<br>법적 조치를 취할 수 있습니다. 귀하가 지정된 수신인이 아니라면 즉시 발송인에게 회신 E-mail 또는 위 연락처로 사실을 알려주시고, 해당 메일은 즉시 삭제하여 주시기 바랍니다.</div>
-      <div style="position:absolute;left:46px;top:62px;font:400 11px ${SF};color:#231f20">블랜은 윤리규범을 준수합니다.&nbsp; * 윤리위반 신고 : ceo@blan.co.kr</div>
-      <div style="position:absolute;right:46px;top:64px;font:400 10px ${SF};letter-spacing:.02em;color:#8a8a8a">www.blan.co.kr</div>
+    <div data-f="addr" style="position:absolute;left:270px;top:124px;font-size:12.5px;line-height:18px;color:#8a8a8a">2F, 76, Hwagok-ro 66-gil, Gangseo-gu, Seoul,<br>Republic of Korea</div>
+    <div data-f="noticeBand" style="position:absolute;left:0;top:190px;width:950px;height:110px;background:#c8c9ca">
+      <div data-f="disclaimer" style="position:absolute;left:46px;top:16px;width:858px;font:400 10px ${SF};line-height:18px;color:#3a3735">※ 본 이메일 내용과 모든 첨부파일은 ㈜블랜과 수신인만의 기밀로서, 지정된 수신인만이 이용할 수 있습니다.&nbsp; 만일 일부라도 무단으로 보유, 전송, 공개, 복제, 이용할 경우<br>법적 조치를 취할 수 있습니다. 귀하가 지정된 수신인이 아니라면 즉시 발송인에게 회신 E-mail 또는 위 연락처로 사실을 알려주시고, 해당 메일은 즉시 삭제하여 주시기 바랍니다.</div>
+      <div data-f="ethics" style="position:absolute;left:46px;top:62px;font:400 11px ${SF};color:#231f20">블랜은 윤리규범을 준수합니다.&nbsp; * 윤리위반 신고 : ceo@blan.co.kr</div>
+      <div data-f="www" style="position:absolute;right:46px;top:64px;font:400 10px ${SF};letter-spacing:.02em;color:#8a8a8a">www.blan.co.kr</div>
     </div>
   </div>`;
+  return withOverrides(html,'blan','signature');
 }
 function anpcFront(){
   const n = el('div','biz-card anpc-front');
-  n.innerHTML = ANPC_FRONT_SVG;
+  n.innerHTML = frontAssetOr('alphanpartners', ANPC_FRONT_SVG, 540, 300);
   return n;
 }
 function anpcBack(t,d){
   const n = el('div','biz-card anpc-back');
   const role = [d.dept,d.title].filter(Boolean).map(esc).join(' / ');
-  const r = (lab,val)=> val ? `<div class="ap-r"><b>${lab}</b>${esc(val)}</div>` : '';
+  const r = (lab,val,key)=> val ? `<div class="ap-r" data-f="${key}"><b>${lab}</b>${esc(val)}</div>` : '';
   n.innerHTML = `
-    <div class="ap-wm">${ANPC_WM_SVG}</div>
-    <div class="ap-sub">ANP<br>Consulting</div>
-    <div class="ap-div"></div>
-    <div class="ap-name">${esc(d.name||'이름')}</div>
-    ${role?`<div class="ap-role">${role}</div>`:''}
+    <div class="ap-wm" data-f="wm">${ANPC_WM_SVG}</div>
+    <div class="ap-sub" data-f="sub">ANP<br>Consulting</div>
+    <div class="ap-div" data-f="divider"></div>
+    <div class="ap-name" data-f="name">${esc(d.name||'이름')}</div>
+    ${role?`<div class="ap-role" data-f="role">${role}</div>`:''}
     <div class="ap-contact">
-      ${d.address?`<div class="ap-r"><b>A.</b>${esc(d.address)}</div>`:''}
-      ${r('P.',d.phone)}
-      ${r('E.',d.email)}
+      ${d.address?`<div class="ap-r" data-f="rowA"><b>A.</b>${esc(d.address)}</div>`:''}
+      ${r('P.',d.phone,'rowP')}
+      ${r('E.',d.email,'rowE')}
     </div>`;
+  applyOverrides(n,'alphanpartners','back');
   return n;
 }
 function testipieFront(){
-  const n=el('div','biz-card tp-front'); n.innerHTML=TESTIPIE_FRONT_SVG; return n;
+  const n=el('div','biz-card tp-front'); n.innerHTML=frontAssetOr('testipie', TESTIPIE_FRONT_SVG, 540, 300); return n;
 }
 function testipieBack(t,d){
   const n=el('div','biz-card tp-back');
   const role=esc(d.title||'');
-  const r=(lab,val)=> val?`<div class="tp-r"><b>${lab}</b>${esc(val)}</div>`:'';
+  const r=(lab,val,key)=> val?`<div class="tp-r" data-f="${key}"><b>${lab}</b>${esc(val)}</div>`:'';
   n.innerHTML=`
-    <div class="tp-wm">${TESTIPIE_WM_SVG}</div>
-    <div class="tp-slogan">Think Big,<br>Start Small, Act Fast</div>
-    <div class="tp-nameline"><span class="tp-name">${esc(d.name||'이름')}</span>${role?`<span class="tp-role">${role}</span>`:''}</div>
+    <div class="tp-wm" data-f="wm">${TESTIPIE_WM_SVG}</div>
+    <div class="tp-slogan" data-f="slogan">Think Big,<br>Start Small, Act Fast</div>
+    <div class="tp-nameline" data-f="nameline"><span class="tp-name" data-f="name">${esc(d.name||'이름')}</span>${role?`<span class="tp-role" data-f="role">${role}</span>`:''}</div>
     <div class="tp-contact">
-      ${r('M',d.phone)}
-      ${r('E',d.email)}
-      ${r('A',d.address)}
+      ${r('M',d.phone,'rowM')}
+      ${r('E',d.email,'rowE')}
+      ${r('A',d.address,'rowA')}
     </div>`;
+  applyOverrides(n,'testipie','back');
   return n;
 }
 function testipieSignature(t,d){
@@ -945,20 +1118,21 @@ function testipieSignature(t,d){
   const contactLine=cont.join('&nbsp;&nbsp;');
   const logo=TESTIPIE_LOGO_SVG.replace('<svg ','<svg style="height:52px;width:auto;display:block" ');
   const disclaimer=`※ 본 이메일 내용과 모든 첨부파일은 ${company}와 수신인만의 기밀로서, 지정된 수신인만이 이용할 수 있습니다. 만일 일부라도 무단으로 보유, 전송, 공개, 복제, 이용할 경우 법적 조치를 취할 수 있습니다. 귀하가 지정된 수신인이 아니라면 즉시 발송인에게 회신 E-mail 또는 위 연락처로 사실을 알려주시고, 해당 메일은 즉시 삭제하여 주시기 바랍니다. 감사합니다.`;
-  return `<div class="esig" style="position:relative;width:966px;height:366px;background:#001535;font-family:${SF};overflow:hidden">
-    <div style="position:absolute;top:24px;right:58px;font:400 13px ${SF};letter-spacing:.02em;color:#fff">Think Big, Start Small, Act Fast</div>
-    <div style="position:absolute;left:76px;top:104px;color:#fff;line-height:0">${logo}</div>
-    <div style="position:absolute;left:377px;top:82px;width:2px;height:96px;background:rgba(255,255,255,.5)"></div>
-    <div style="position:absolute;left:423px;top:82px;right:58px">
-      <div style="white-space:nowrap"><span style="font:700 28px ${SF};letter-spacing:.08em;color:#fff">${name}</span>${title?`<span style="font:500 16px ${SF};color:#c2c6cf;margin-left:8px">${title}</span>`:''}</div>
-      <div style="font:400 16px ${SF};color:#fff;margin-top:14px">${company}&nbsp;&nbsp;|&nbsp;&nbsp;${addr}</div>
-      <div style="font:400 16px ${SF};color:#fff;margin-top:8px;white-space:nowrap">${contactLine}</div>
+  const html = `<div class="esig" style="position:relative;width:966px;height:366px;background:#001535;font-family:${SF};overflow:hidden">
+    <div data-f="slogan" style="position:absolute;top:24px;right:58px;font:400 13px ${SF};letter-spacing:.02em;color:#fff">Think Big, Start Small, Act Fast</div>
+    <div class="esig-wm" data-f="logo" style="position:absolute;left:76px;top:104px;color:#fff;line-height:0">${logo}</div>
+    <div data-f="divider" style="position:absolute;left:377px;top:82px;width:2px;height:96px;background:rgba(255,255,255,.5)"></div>
+    <div data-f="rightBlock" style="position:absolute;left:423px;top:82px;right:58px">
+      <div style="white-space:nowrap"><span data-f="name" style="font:700 28px ${SF};letter-spacing:.08em;color:#fff">${name}</span>${title?`<span data-f="title" style="font:500 16px ${SF};color:#c2c6cf;margin-left:8px">${title}</span>`:''}</div>
+      <div data-f="companyAddr" style="font:400 16px ${SF};color:#fff;margin-top:14px">${company}&nbsp;&nbsp;|&nbsp;&nbsp;${addr}</div>
+      <div data-f="contact" style="font:400 16px ${SF};color:#fff;margin-top:8px;white-space:nowrap">${contactLine}</div>
     </div>
-    <div style="position:absolute;left:0;top:228px;width:966px;height:138px;background:#c9cacb">
-      <div style="position:absolute;left:82px;top:19px;width:842px;font:400 13px ${SF};line-height:21px;color:#33302d">${disclaimer}</div>
-      <div style="position:absolute;left:82px;top:92px;font:400 14px ${SF};color:#231815">테스티파이는 윤리규범을 준수합니다. *윤리위반 신고 : kyr@testipie.com</div>
+    <div data-f="noticeBand" style="position:absolute;left:0;top:228px;width:966px;height:138px;background:#c9cacb">
+      <div data-f="disclaimer" style="position:absolute;left:82px;top:19px;width:842px;font:400 13px ${SF};line-height:21px;color:#33302d">${disclaimer}</div>
+      <div data-f="ethics" style="position:absolute;left:82px;top:92px;font:400 14px ${SF};color:#231815">테스티파이는 윤리규범을 준수합니다. *윤리위반 신고 : kyr@testipie.com</div>
     </div>
   </div>`;
+  return withOverrides(html,'testipie','signature');
 }
 function buildOutput(key,d){
   const b=BRANDS[key];
@@ -1196,6 +1370,640 @@ if($('bulkGo')) $('bulkGo').addEventListener('click',async()=>{
   btn.textContent=`완료 ✓ (${ok}건${fail?`/건너뜀 ${fail}`:''})`;
   setTimeout(()=>{btn.textContent=orig; btn.disabled=false;},2800);
 });
+
+/* =====================================================================
+   클라우드 저장소 — Firebase Firestore (미설정 시 이 브라우저의 localStorage로 대체)
+   ===================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+}; // 팀 전체 실시간 공유가 필요하면 이 값을 Firebase 콘솔에서 발급받아 채워넣으세요.
+let fbReady = false, fbRefs = null;
+async function initCloud(){
+  if(!FIREBASE_CONFIG.apiKey) return false;
+  try{
+    const [{initializeApp},{getFirestore,doc,getDocs,collection,setDoc,deleteDoc}, {getAuth,signInAnonymously}] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js'),
+      import('https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js')
+    ]);
+    const app = initializeApp(FIREBASE_CONFIG);
+    const db = getFirestore(app);
+    await signInAnonymously(getAuth(app));
+    fbRefs = {db,doc,getDocs,collection,setDoc,deleteDoc};
+    fbReady = true;
+    return true;
+  }catch(e){ console.warn('Firebase 초기화 실패 — 로컬 저장으로 대체합니다.', e); fbReady=false; return false; }
+}
+async function cloudLoadAll(){
+  if(fbReady){
+    try{
+      const ovSnap = await fbRefs.getDocs(fbRefs.collection(fbRefs.db,'layoutOverrides'));
+      ovSnap.forEach(dc=>{ LAYOUT[dc.id]=dc.data(); });
+      const cbSnap = await fbRefs.getDocs(fbRefs.collection(fbRefs.db,'customBrands'));
+      cbSnap.forEach(dc=>{ CUSTOM_BRANDS[dc.id]=dc.data(); });
+      try{
+        const orgSnap = await fbRefs.getDocs(fbRefs.collection(fbRefs.db,'orgChart'));
+        orgSnap.forEach(dc=>{ const data=dc.data(); if(data && Array.isArray(data.tree) && data.tree.length) ORG=data.tree; });
+      }catch(e){}
+      return;
+    }catch(e){ console.warn('클라우드 불러오기 실패 — 로컬 저장값을 사용합니다.', e); }
+  }
+  try{ LAYOUT = JSON.parse(localStorage.getItem('nc_layout')||'{}'); }catch(e){ LAYOUT={}; }
+  try{ CUSTOM_BRANDS = JSON.parse(localStorage.getItem('nc_custom')||'{}'); }catch(e){ CUSTOM_BRANDS={}; }
+  try{ const saved=JSON.parse(localStorage.getItem('nc_org')||'null'); if(Array.isArray(saved) && saved.length) ORG=saved; }catch(e){}
+}
+async function cloudSaveOverride(key, data){
+  LAYOUT[key]=data;
+  if(fbReady){
+    try{ await fbRefs.setDoc(fbRefs.doc(fbRefs.db,'layoutOverrides',key), data); return; }
+    catch(e){ console.warn('클라우드 저장 실패 — 로컬에만 저장합니다.', e); }
+  }
+  try{ localStorage.setItem('nc_layout', JSON.stringify(LAYOUT)); }catch(e){}
+}
+async function cloudSaveCustomBrand(key, data){
+  CUSTOM_BRANDS[key]=data;
+  if(fbReady){
+    try{ await fbRefs.setDoc(fbRefs.doc(fbRefs.db,'customBrands',key), data); return; }
+    catch(e){ console.warn('클라우드 저장 실패 — 로컬에만 저장합니다.', e); }
+  }
+  try{ localStorage.setItem('nc_custom', JSON.stringify(CUSTOM_BRANDS)); }catch(e){}
+}
+async function cloudDeleteCustomBrand(key){
+  delete CUSTOM_BRANDS[key];
+  if(fbReady){
+    try{ await fbRefs.deleteDoc(fbRefs.doc(fbRefs.db,'customBrands',key)); return; }
+    catch(e){ console.warn('클라우드 삭제 실패', e); }
+  }
+  try{ localStorage.setItem('nc_custom', JSON.stringify(CUSTOM_BRANDS)); }catch(e){}
+}
+async function cloudSaveOrg(tree){
+  ORG = tree;
+  if(fbReady){
+    try{ await fbRefs.setDoc(fbRefs.doc(fbRefs.db,'orgChart','main'), {tree}); return; }
+    catch(e){ console.warn('클라우드 저장 실패 — 로컬에만 저장합니다.', e); }
+  }
+  try{ localStorage.setItem('nc_org', JSON.stringify(ORG)); }catch(e){}
+}
+(async function bootCloud(){
+  await initCloud();
+  await cloudLoadAll();
+  refreshCustomBrands();
+  if(typeof bmRenderCloudStat==='function') bmRenderCloudStat();
+})();
+
+/* =====================================================================
+   브랜드 관리자 (Brand Manager) — 미세조정 + 신규 브랜드 등록 편집기
+   ===================================================================== */
+const BM_PASSPHRASE = 'alpha2026'; // 임시 접근암호. 실제 계정 기반 보안이 필요하면 Firebase Auth 연동으로 교체 권장.
+const BM_SAMPLE = { name:'홍길동', dept:'브랜드본부 그래픽1팀', title:'팀장', phone:'010 1234 5678', fax:'02 2659 9166',
+  email:'hong@alphabrothers.co.kr', address:'서울시 강서구 공항대로45길 71, 씨에이치빌딩 8층', cert:'' };
+const BM_FIELD_OPTS = [['static','고정 텍스트'],['name','이름'],['dept','부서'],['title','직책'],['phone','전화'],['fax','팩스'],['email','이메일'],['address','주소'],['cert','인증문구']];
+
+let bmState = { key:null, custom:false, face:'back', selEl:null, view:'brand' };
+let bmCanvasRootRef = null;
+
+function bmSlug(name){
+  const base='c_'+(name||'brand').toLowerCase().replace(/[^a-z0-9가-힣]+/g,'').slice(0,16)+'_'+Math.random().toString(36).slice(2,6);
+  return base;
+}
+
+function bmGate(){
+  try{ if(sessionStorage.getItem('bm_ok')==='1') return true; }catch(e){}
+  const pass = prompt('브랜드 관리자 접근 비밀번호를 입력하세요.');
+  if(pass===BM_PASSPHRASE){ try{ sessionStorage.setItem('bm_ok','1'); }catch(e){} return true; }
+  if(pass!==null) alert('비밀번호가 올바르지 않습니다.');
+  return false;
+}
+
+function bmOpen(){
+  if(!bmGate()) return;
+  $('bmOverlay').classList.add('open');
+  $('bmOverlay').setAttribute('aria-hidden','false');
+  bmRenderCloudStat();
+  bmRenderSide();
+}
+function bmCloseFn(){
+  $('bmOverlay').classList.remove('open');
+  $('bmOverlay').setAttribute('aria-hidden','true');
+}
+if($('bmOpenBtn')) $('bmOpenBtn').addEventListener('click', bmOpen);
+if($('bmClose')) $('bmClose').addEventListener('click', bmCloseFn);
+if($('bmOverlay')) $('bmOverlay').addEventListener('mousedown', e=>{ if(e.target.id==='bmOverlay') bmCloseFn(); });
+
+function bmRenderCloudStat(){
+  const s=$('bmCloudStat'); if(!s) return;
+  s.textContent = fbReady ? '☁ 클라우드 연결됨 · 팀 전체 공유' : '⚠ 이 브라우저에만 저장됨 (Firebase 미연결)';
+}
+
+function bmRenderSide(){
+  const orgWrap=$('bmOrgRowWrap'), exList=$('bmExistingList'), cusList=$('bmCustomList');
+  if(!exList||!cusList) return;
+  if(orgWrap){
+    orgWrap.innerHTML='';
+    const row=el('div','bm-row'+(bmState.view==='org'?' on':''));
+    row.textContent='🗂 조직도(부서) 관리';
+    row.addEventListener('click', bmOpenOrgView);
+    orgWrap.appendChild(row);
+  }
+  exList.innerHTML=''; cusList.innerHTML='';
+  Object.entries(BRANDS).forEach(([key,b])=>{
+    if(b.custom) return;
+    const row=el('div','bm-row'+(bmState.view==='brand'&&bmState.key===key&&!bmState.custom?' on':''));
+    row.textContent=b.name;
+    row.addEventListener('click',()=>bmSelectBrand(key,false));
+    exList.appendChild(row);
+  });
+  let hasCustom=false;
+  Object.entries(BRANDS).forEach(([key,b])=>{
+    if(!b.custom) return;
+    hasCustom=true;
+    const row=el('div','bm-row'+(bmState.view==='brand'&&bmState.key===key&&bmState.custom?' on':''));
+    const nm=el('span'); nm.textContent=b.name; row.appendChild(nm);
+    const del=el('span','del'); del.textContent='삭제';
+    del.addEventListener('click',ev=>{ ev.stopPropagation(); bmDeleteCustom(key); });
+    row.appendChild(del);
+    row.addEventListener('click',()=>bmSelectBrand(key,true));
+    cusList.appendChild(row);
+  });
+  if(!hasCustom){ const note=el('div','bm-note'); note.textContent='아직 없음'; cusList.appendChild(note); }
+}
+
+function bmDeleteCustom(key){
+  if(!confirm('이 커스텀 브랜드를 삭제할까요? 되돌릴 수 없습니다.')) return;
+  delete CUSTOM_BRANDS[key];
+  delete BRANDS[key];
+  cloudDeleteCustomBrand(key);
+  if(bmState.key===key){ bmState={key:null,custom:false,face:'back',selEl:null,view:'brand'}; }
+  renderChips();
+  bmRenderSide();
+  if(bmState.view==='org') bmRenderOrgEditor(); else bmRenderMainOrEmpty();
+}
+
+function bmNewBrand(){
+  const name = prompt('새 브랜드(소속) 이름을 입력하세요. 예: 알파스튜디오');
+  if(!name || !name.trim()) return;
+  const key = bmSlug(name.trim());
+  const schema = {
+    key, name:name.trim(), tag:'커스텀', sw:'#6b7280', swText:name.trim().slice(0,2),
+    front:{ bg:'#161519', elements:[] },
+    back:{ bg:'#ffffff', elements:[] },
+    signature:null,
+    domain:''
+  };
+  CUSTOM_BRANDS[key]=schema;
+  instantiateCustomBrand(key,schema);
+  renderChips();
+  bmRenderSide();
+  bmSelectBrand(key,true);
+}
+if($('bmNewBrand')) $('bmNewBrand').addEventListener('click', bmNewBrand);
+
+function bmSelectBrand(key,custom){
+  bmState = { key, custom, face:'back', selEl:null, view:'brand' };
+  bmRenderSide();
+  bmRenderMainOrEmpty();
+}
+
+/* ---------- 조직도(부서) 관리 ---------- */
+function bmOpenOrgView(){
+  bmState.view='org';
+  bmRenderSide();
+  bmRenderOrgEditor();
+}
+function bmOrgTeamRow(div, idx){
+  const row=el('div'); row.style.cssText='display:flex;gap:6px;align-items:center;margin:5px 0 5px 20px';
+  const inp=el('input'); inp.type='text'; inp.value=div.teams[idx];
+  inp.style.cssText='flex:1;font:inherit;font-size:12.5px;padding:7px 10px;border:1px solid var(--line);border-radius:7px';
+  inp.addEventListener('change',()=>{ div.teams[idx]=inp.value.trim()||div.teams[idx]; });
+  const up=el('button','btn'); up.type='button'; up.textContent='↑'; up.style.padding='6px 9px';
+  up.addEventListener('click',()=>{ if(idx>0){ const t=div.teams[idx-1]; div.teams[idx-1]=div.teams[idx]; div.teams[idx]=t; bmRenderOrgEditor(); } });
+  const down=el('button','btn'); down.type='button'; down.textContent='↓'; down.style.padding='6px 9px';
+  down.addEventListener('click',()=>{ if(idx<div.teams.length-1){ const t=div.teams[idx+1]; div.teams[idx+1]=div.teams[idx]; div.teams[idx]=t; bmRenderOrgEditor(); } });
+  const del=el('button','btn'); del.type='button'; del.textContent='삭제'; del.style.cssText='padding:6px 10px;font-size:11px';
+  del.addEventListener('click',()=>{ div.teams.splice(idx,1); bmRenderOrgEditor(); });
+  row.append(inp,up,down,del);
+  return row;
+}
+function bmOrgDivCard(div, idx){
+  const card=el('div'); card.style.cssText='background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(20,21,25,.08)';
+  const head=el('div'); head.style.cssText='display:flex;gap:6px;align-items:center';
+  const inp=el('input'); inp.type='text'; inp.value=div.div;
+  inp.style.cssText='flex:1;font:inherit;font-size:13.5px;font-weight:700;padding:8px 11px;border:1px solid var(--line);border-radius:8px';
+  inp.addEventListener('change',()=>{ div.div=inp.value.trim()||div.div; });
+  const up=el('button','btn'); up.type='button'; up.textContent='↑ 본부';
+  up.addEventListener('click',()=>{ if(idx>0){ [ORG[idx-1],ORG[idx]]=[ORG[idx],ORG[idx-1]]; bmRenderOrgEditor(); } });
+  const down=el('button','btn'); down.type='button'; down.textContent='↓ 본부';
+  down.addEventListener('click',()=>{ if(idx<ORG.length-1){ [ORG[idx+1],ORG[idx]]=[ORG[idx],ORG[idx+1]]; bmRenderOrgEditor(); } });
+  const del=el('button','btn'); del.type='button'; del.textContent='본부 삭제';
+  del.addEventListener('click',()=>{ if(confirm(`'${div.div}'을(를) 삭제할까요? 하위 팀도 함께 삭제됩니다.`)){ ORG.splice(idx,1); bmRenderOrgEditor(); } });
+  head.append(inp,up,down,del);
+  card.appendChild(head);
+  const teamsWrap=el('div'); teamsWrap.style.marginTop='6px';
+  div.teams.forEach((t,ti)=> teamsWrap.appendChild(bmOrgTeamRow(div,ti)));
+  card.appendChild(teamsWrap);
+  const addTeam=el('button','btn'); addTeam.type='button'; addTeam.textContent='+ 팀 추가';
+  addTeam.style.cssText='margin:4px 0 0 20px';
+  addTeam.addEventListener('click',()=>{ div.teams.push('새 팀'); bmRenderOrgEditor(); });
+  card.appendChild(addTeam);
+  return card;
+}
+function bmRenderOrgEditor(){
+  const main=$('bmMain'); if(!main) return;
+  main.innerHTML='';
+  const wrap=el('div'); wrap.style.cssText='flex:1;overflow:auto;padding:24px;background:#eceef2';
+  const inner=el('div'); inner.style.cssText='max-width:640px';
+  const h4=el('div'); h4.style.cssText='font-weight:700;font-size:15px;margin-bottom:5px'; h4.textContent='조직도(부서) 관리';
+  const note=el('div','bm-note'); note.style.cssText='margin-bottom:16px;font-size:12px';
+  note.textContent='명함 생성 화면 "부서" 선택 목록입니다. 본부·팀 이름을 바로 고치거나, 추가·삭제·순서 변경을 할 수 있습니다.';
+  inner.append(h4,note);
+  ORG.forEach((div,idx)=> inner.appendChild(bmOrgDivCard(div,idx)));
+  const addDiv=el('button','btn primary'); addDiv.type='button'; addDiv.textContent='+ 본부 추가';
+  addDiv.addEventListener('click',()=>{ ORG.push({div:'새 본부', teams:[]}); bmRenderOrgEditor(); });
+  inner.appendChild(addDiv);
+  const saveRow=el('div'); saveRow.style.cssText='margin-top:22px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px;align-items:flex-start';
+  const saveBtn=el('button','btn primary'); saveBtn.type='button'; saveBtn.textContent='☁ 저장 (팀 전체에 반영)';
+  saveBtn.addEventListener('click', async ()=>{
+    saveBtn.textContent='저장 중…'; saveBtn.disabled=true;
+    try{ await cloudSaveOrg(ORG); saveBtn.textContent='저장됨 ✓'; }
+    catch(e){ saveBtn.textContent='저장 실패'; }
+    setTimeout(()=>{ saveBtn.textContent='☁ 저장 (팀 전체에 반영)'; saveBtn.disabled=false; },1400);
+  });
+  const note2=el('div','bm-note'); note2.textContent='"저장"을 눌러야 다른 사람 화면에도 반영됩니다. (Firebase 미연결 시 이 브라우저에만 저장됩니다)';
+  saveRow.append(saveBtn,note2);
+  inner.appendChild(saveRow);
+  wrap.appendChild(inner);
+  main.appendChild(wrap);
+}
+
+function bmRenderMainOrEmpty(){
+  const main=$('bmMain'); if(!main) return;
+  if(!bmState.key){ main.innerHTML='<div class="bm-empty">왼쪽에서 브랜드를 선택하거나 새 브랜드를 만드세요.</div>'; return; }
+  bmRenderMain();
+}
+
+const FRONT_ASSET_BRANDS = ['blan','testipie','alphanpartners'];
+function bmAvailableFaces(b){
+  const faces=[];
+  let fr=null; try{ fr = b.front ? b.front(BM_SAMPLE) : null; }catch(e){ fr=null; }
+  if(fr) faces.push('front');
+  faces.push('back');
+  if(b.signature) faces.push('signature');
+  return faces;
+}
+function bmFaceLabel(f){ return f==='front'?'앞면':f==='back'?'뒷면':'이메일 서명'; }
+
+function bmRenderMain(){
+  const b = BRANDS[bmState.key];
+  if(!b){ bmState.key=null; bmRenderMainOrEmpty(); return; }
+  const faces = bmAvailableFaces(b);
+  if(faces.indexOf(bmState.face)===-1) bmState.face=faces[0];
+  const main = $('bmMain');
+  main.innerHTML='';
+  const left = el('div'); left.style.cssText='flex:1;display:flex;flex-direction:column;min-width:0';
+  const topRow = el('div'); topRow.style.cssText='padding:14px 20px 0';
+  const tabs = el('div','bm-tabs');
+  faces.forEach(f=>{
+    const t=el('button','bm-tab'+(bmState.face===f?' on':'')); t.type='button'; t.textContent=bmFaceLabel(f);
+    t.addEventListener('click',()=>{ bmState.face=f; bmState.selEl=null; bmRenderMain(); });
+    tabs.appendChild(t);
+  });
+  topRow.appendChild(tabs);
+  left.appendChild(topRow);
+
+  const canvasWrap = el('div','bm-canvaswrap');
+  const root = bmBuildCanvas(b);
+  canvasWrap.appendChild(root);
+  left.appendChild(canvasWrap);
+
+  const panel = el('div','bm-panel'); panel.id='bmPanel';
+
+  main.appendChild(left);
+  main.appendChild(panel);
+  bmRenderPanel();
+}
+
+function bmBuildCanvas(b){
+  let root;
+  if(bmState.face==='signature'){
+    const tmp = el('div'); tmp.innerHTML = b.signature(BM_SAMPLE);
+    root = tmp.firstElementChild;
+  } else if(bmState.face==='front'){
+    root = b.front(BM_SAMPLE);
+  } else {
+    root = b.back(BM_SAMPLE);
+  }
+  root.classList.add('bm-canvas');
+  root.style.transform='none';
+  root.addEventListener('mousedown', e=>{ if(e.target===root){ bmState.selEl=null; bmRenderMain(); } });
+  bmCanvasRootRef = root;
+  requestAnimationFrame(()=> bmAttachHits(root));
+  return root;
+}
+
+function bmAttachHits(root){
+  if(bmCanvasRootRef!==root) return; // 화면이 이미 갱신된 경우 무시
+  const olds = root.querySelectorAll(':scope > .bm-hit'); olds.forEach(o=>o.remove());
+  const seen=new Set();
+  root.querySelectorAll('[data-f]').forEach(target=>{
+    const key = target.getAttribute('data-f');
+    if(seen.has(key)) return; seen.add(key);
+    const rr = target.getBoundingClientRect(), rb = root.getBoundingClientRect();
+    const hit = el('div','bm-hit');
+    hit.style.left=(rr.left-rb.left)+'px'; hit.style.top=(rr.top-rb.top)+'px';
+    hit.style.width=Math.max(rr.width,6)+'px'; hit.style.height=Math.max(rr.height,6)+'px';
+    hit.dataset.key=key;
+    if(bmState.selEl===key) hit.classList.add('sel');
+    hit.addEventListener('mousedown', ev=>{ ev.stopPropagation(); bmStartDrag(ev, root, target, key); });
+    hit.addEventListener('click', ev=>{ ev.stopPropagation(); });
+    root.appendChild(hit);
+  });
+}
+
+function bmGetOverrideForKey(key){
+  if(bmState.custom){
+    const schema = CUSTOM_BRANDS[bmState.key];
+    const face = schema && schema[bmState.face];
+    const arr = (face && face.elements) || [];
+    return arr.find(e=>e.id===key);
+  }
+  LAYOUT[bmState.key] = LAYOUT[bmState.key] || {};
+  LAYOUT[bmState.key][bmState.face] = LAYOUT[bmState.key][bmState.face] || {};
+  return LAYOUT[bmState.key][bmState.face][key];
+}
+function bmSetOverrideField(key, field, value){
+  if(bmState.custom){
+    const schema = CUSTOM_BRANDS[bmState.key];
+    const face = schema && schema[bmState.face];
+    if(!face) return;
+    let elc = (face.elements||[]).find(e=>e.id===key);
+    if(!elc) return;
+    elc[field]=value;
+    return;
+  }
+  LAYOUT[bmState.key] = LAYOUT[bmState.key] || {};
+  LAYOUT[bmState.key][bmState.face] = LAYOUT[bmState.key][bmState.face] || {};
+  LAYOUT[bmState.key][bmState.face][key] = LAYOUT[bmState.key][bmState.face][key] || {};
+  LAYOUT[bmState.key][bmState.face][key][field]=value;
+}
+function bmResetOverride(key){
+  if(bmState.custom) return; // 커스텀 브랜드는 요소 삭제로 대체
+  if(LAYOUT[bmState.key] && LAYOUT[bmState.key][bmState.face]) delete LAYOUT[bmState.key][bmState.face][key];
+  bmState.selEl=null;
+  bmRenderMain();
+}
+
+function bmPromoteIfNeeded(root, key){
+  if(bmState.custom) return;
+  const target = root.querySelector(`[data-f="${key}"]`);
+  if(!target) return;
+  const cur = LAYOUT[bmState.key][bmState.face][key];
+  if(cur && cur.left!=null) return;
+  const parent = target.parentElement;
+  const siblings = parent ? Array.from(parent.children).filter(c=>c.hasAttribute && c.hasAttribute('data-f')) : [target];
+  siblings.forEach(sib=>{
+    const k = sib.getAttribute('data-f');
+    const exist = LAYOUT[bmState.key][bmState.face][k];
+    if(!exist || exist.left==null){
+      LAYOUT[bmState.key][bmState.face][k] = Object.assign({}, exist, {left:sib.offsetLeft, top:sib.offsetTop});
+    }
+  });
+}
+
+function bmStartDrag(ev, root, target, key){
+  bmState.selEl = key;
+  bmPromoteIfNeeded(root, key);
+  if(!bmState.custom) applyOverrides(root, bmState.key, bmState.face);
+  const hit = root.querySelector(`.bm-hit[data-key="${key}"]`);
+  const startX=ev.clientX, startY=ev.clientY;
+  const ov = bmGetOverrideForKey(key) || {};
+  const baseLeft = bmState.custom ? (ov.x||0) : (ov.left!=null?ov.left:target.offsetLeft);
+  const baseTop  = bmState.custom ? (ov.y||0) : (ov.top!=null?ov.top:target.offsetTop);
+  const hitBaseLeft = hit ? (parseFloat(hit.style.left)||0) : 0;
+  const hitBaseTop  = hit ? (parseFloat(hit.style.top)||0) : 0;
+  let curL=baseLeft, curT=baseTop, moved=false;
+  function onMove(e2){
+    moved=true;
+    const dx=e2.clientX-startX, dy=e2.clientY-startY;
+    curL=Math.round(baseLeft+dx); curT=Math.round(baseTop+dy);
+    target.style.position='absolute'; target.style.left=curL+'px'; target.style.top=curT+'px';
+    if(hit){ hit.style.left=(hitBaseLeft+dx)+'px'; hit.style.top=(hitBaseTop+dy)+'px'; }
+  }
+  function onUp(){
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onUp);
+    if(moved){
+      if(bmState.custom){ bmSetOverrideField(key,'x',curL); bmSetOverrideField(key,'y',curT); }
+      else { bmSetOverrideField(key,'left',curL); bmSetOverrideField(key,'top',curT); }
+    }
+    bmRenderMain();
+  }
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
+}
+
+function bmNumField(panel, labelTxt, curVal, onChange, step){
+  const f=el('div','bm-f'); const lb=el('label'); lb.textContent=labelTxt; f.appendChild(lb);
+  const inp=el('input'); inp.type='number'; if(step) inp.step=step;
+  inp.value = curVal!=null?curVal:'';
+  inp.addEventListener('change',()=>{ const v=inp.value===''?null:parseFloat(inp.value); onChange(v); });
+  f.appendChild(inp); panel.appendChild(f); return f;
+}
+function bmColorField(panel, labelTxt, curVal, onChange){
+  const f=el('div','bm-f'); const lb=el('label'); lb.textContent=labelTxt; f.appendChild(lb);
+  const inp=el('input'); inp.type='color'; inp.value = curVal||'#000000';
+  inp.addEventListener('input',()=> onChange(inp.value));
+  f.appendChild(inp); panel.appendChild(f); return f;
+}
+function bmSelectField(panel, labelTxt, curVal, options, onChange){
+  const f=el('div','bm-f'); const lb=el('label'); lb.textContent=labelTxt; f.appendChild(lb);
+  const sel=el('select');
+  options.forEach(([v,label])=>{ const o=el('option'); o.value=v; o.textContent=label; if(v===curVal) o.selected=true; sel.appendChild(o); });
+  sel.addEventListener('change',()=> onChange(sel.value));
+  f.appendChild(sel); panel.appendChild(f); return f;
+}
+function bmTextField(panel, labelTxt, curVal, onChange){
+  const f=el('div','bm-f'); const lb=el('label'); lb.textContent=labelTxt; f.appendChild(lb);
+  const inp=el('input'); inp.type='text'; inp.value=curVal||'';
+  inp.addEventListener('change',()=> onChange(inp.value));
+  f.appendChild(inp); panel.appendChild(f); return f;
+}
+
+function bmRenderPanel(){
+  const panel=$('bmPanel'); if(!panel) return;
+  panel.innerHTML='';
+
+  if(bmState.custom) bmRenderCustomMeta(panel);
+  if(bmState.custom) bmRenderAddButtons(panel);
+  if(!bmState.custom && bmState.face==='front' && FRONT_ASSET_BRANDS.indexOf(bmState.key)!==-1) bmRenderFrontAsset(panel);
+
+  if(bmState.selEl){
+    const ov = bmGetOverrideForKey(bmState.selEl) || {};
+    const h4=el('h4'); h4.textContent='선택된 요소'; panel.appendChild(h4);
+
+    if(bmState.custom){
+      const schema=CUSTOM_BRANDS[bmState.key];
+      const face=schema[bmState.face];
+      const elc=(face.elements||[]).find(e=>e.id===bmState.selEl);
+      if(elc){
+        bmSelectField(panel,'연결 필드',elc.field||'static',BM_FIELD_OPTS,(v)=>{ elc.field=v; bmRenderMain(); });
+        bmTextField(panel, elc.field==='static'?'고정 텍스트':'접두어(선택)', elc.text, (v)=>{ elc.text=v; bmRenderMain(); });
+        const row=el('div','bm-2col'); panel.appendChild(row);
+        bmNumField(row,'X',elc.x,(v)=>{ elc.x=v||0; bmRenderMain(); });
+        bmNumField(row,'Y',elc.y,(v)=>{ elc.y=v||0; bmRenderMain(); });
+        if(elc.type!=='text'){
+          const row2=el('div','bm-2col'); panel.appendChild(row2);
+          bmNumField(row2,'너비(W)',elc.w,(v)=>{ elc.w=v||10; bmRenderMain(); });
+          bmNumField(row2,'높이(H)',elc.h,(v)=>{ elc.h=v||2; bmRenderMain(); });
+        } else {
+          bmNumField(panel,'너비(W, 비우면 자동)',elc.w,(v)=>{ elc.w=v; bmRenderMain(); });
+        }
+        if(elc.type==='text'){
+          bmNumField(panel,'폰트크기(px)',elc.fontSize||14,(v)=>{ elc.fontSize=v||14; bmRenderMain(); });
+          bmSelectField(panel,'굵기',String(elc.fontWeight||400),[['400','보통'],['500','medium'],['600','semibold'],['700','bold'],['800','extrabold']],(v)=>{ elc.fontWeight=parseInt(v,10); bmRenderMain(); });
+          bmColorField(panel,'색상',elc.color||'#000000',(v)=>{ elc.color=v; bmRenderMain(); });
+          bmNumField(panel,'자간(px)',elc.letterSpacing||0,(v)=>{ elc.letterSpacing=v||0; bmRenderMain(); },'0.1');
+        } else if(elc.type==='line'){
+          bmColorField(panel,'색상',elc.color||'#000000',(v)=>{ elc.color=v; bmRenderMain(); });
+        } else if(elc.type==='image'){
+          const f=el('div','bm-f'); const lb=el('label'); lb.textContent='이미지 교체'; f.appendChild(lb);
+          const inp=el('input'); inp.type='file'; inp.accept='image/*';
+          inp.addEventListener('change',()=>{ const file=inp.files[0]; if(!file) return; const r=new FileReader(); r.onload=ev=>{ elc.src=ev.target.result; bmRenderMain(); }; r.readAsDataURL(file); });
+          f.appendChild(inp); panel.appendChild(f);
+        }
+        const delBtn=el('button','btn'); delBtn.textContent='요소 삭제'; delBtn.style.marginTop='6px';
+        delBtn.addEventListener('click',()=>{ face.elements=face.elements.filter(e=>e.id!==bmState.selEl); bmState.selEl=null; bmRenderMain(); });
+        panel.appendChild(delBtn);
+      }
+    } else {
+      const row=el('div','bm-2col'); panel.appendChild(row);
+      bmNumField(row,'X',ov.left,(v)=>{ if(v==null) return; bmSetOverrideField(bmState.selEl,'left',v); bmRenderMain(); });
+      bmNumField(row,'Y',ov.top,(v)=>{ if(v==null) return; bmSetOverrideField(bmState.selEl,'top',v); bmRenderMain(); });
+      bmNumField(panel,'폰트크기(px, 비우면 기본값)',ov.fontSize,(v)=>{ bmSetOverrideField(bmState.selEl,'fontSize',v); bmRenderMain(); });
+      bmColorField(panel,'색상',ov.color||'#000000',(v)=>{ bmSetOverrideField(bmState.selEl,'color',v); bmRenderMain(); });
+      bmNumField(panel,'자간(px, 비우면 기본값)',ov.letterSpacing,(v)=>{ bmSetOverrideField(bmState.selEl,'letterSpacing',v); bmRenderMain(); },'0.1');
+      const resetBtn=el('button','btn'); resetBtn.textContent='이 항목 기본값으로 초기화'; resetBtn.style.marginTop='6px';
+      resetBtn.addEventListener('click',()=>bmResetOverride(bmState.selEl));
+      panel.appendChild(resetBtn);
+    }
+  } else {
+    const note=el('div','bm-note');
+    note.textContent = bmState.custom ? '캔버스의 요소를 클릭하거나 위에서 새 요소를 추가하세요.' : '캔버스에서 이동·조정할 항목을 클릭 또는 드래그하세요.';
+    panel.appendChild(note);
+  }
+
+  bmRenderSaveButtons(panel);
+}
+
+function bmRenderCustomMeta(panel){
+  const schema=CUSTOM_BRANDS[bmState.key]; if(!schema) return;
+  const h4=el('h4'); h4.textContent='브랜드 정보'; panel.appendChild(h4);
+  bmTextField(panel,'브랜드명',schema.name,(v)=>{ schema.name=v||schema.name; renderChips(); bmRenderSide(); });
+  bmTextField(panel,'태그(칩 아래 표시)',schema.tag,(v)=>{ schema.tag=v; renderChips(); });
+  bmColorField(panel,'칩 색상',schema.sw,(v)=>{ schema.sw=v; renderChips(); });
+  bmTextField(panel,'이메일 도메인(선택)',schema.domain,(v)=>{ schema.domain=(v||'').trim(); });
+  const row=el('div','bm-f');
+  const lb=el('label'); lb.textContent='배경'; row.appendChild(lb);
+  const face = schema[bmState.face];
+  if(face){
+    bmColorField(panel,'배경색',/^#/.test(face.bg||'')?face.bg:'#ffffff',(v)=>{ face.bg=v; bmRenderMain(); });
+    const fi=el('div','bm-f'); const flb=el('label'); flb.textContent='배경 이미지 업로드'; fi.appendChild(flb);
+    const finp=el('input'); finp.type='file'; finp.accept='image/*';
+    finp.addEventListener('change',()=>{ const file=finp.files[0]; if(!file) return; const r=new FileReader(); r.onload=ev=>{ face.bg=ev.target.result; bmRenderMain(); }; r.readAsDataURL(file); });
+    fi.appendChild(finp); panel.appendChild(fi);
+    if(face.bg && face.bg.indexOf('data:')===0){
+      const rm=el('button','btn'); rm.textContent='배경 이미지 제거'; rm.style.marginBottom='10px';
+      rm.addEventListener('click',()=>{ face.bg='#ffffff'; bmRenderMain(); });
+      panel.appendChild(rm);
+    }
+  }
+  const sigRow=el('div','bm-f');
+  const cb=el('input'); cb.type='checkbox'; cb.checked=!!schema.signature; cb.style.marginRight='6px';
+  cb.addEventListener('change',()=>{
+    schema.signature = cb.checked ? (schema.signature||{bg:'#161519',w:960,h:360,elements:[]}) : null;
+    if(cb.checked) instantiateCustomBrand(bmState.key,schema); else delete BRANDS[bmState.key].signature;
+    renderChips(); bmRenderMain();
+  });
+  const cblb=el('label'); cblb.textContent='이메일 서명 사용'; cblb.style.cssText='display:inline;text-transform:none;font-family:var(--sans);font-size:12.5px;color:var(--ink)';
+  sigRow.appendChild(cb); sigRow.appendChild(cblb); panel.appendChild(sigRow);
+}
+
+function bmRenderFrontAsset(panel){
+  const h4=el('h4'); h4.textContent='앞면 이미지'; panel.appendChild(h4);
+  const note=el('div','bm-note'); note.textContent='이 브랜드의 앞면은 고정 디자인입니다. 새 원본 이미지를 올리면 통째로 교체됩니다(540×300px 권장).'; panel.appendChild(note);
+  const fi=el('div','bm-f'); const flb=el('label'); flb.textContent='이미지 업로드'; fi.appendChild(flb);
+  const finp=el('input'); finp.type='file'; finp.accept='image/*';
+  finp.addEventListener('change',()=>{
+    const file=finp.files[0]; if(!file) return;
+    const r=new FileReader();
+    r.onload=ev=>{ LAYOUT[bmState.key]=LAYOUT[bmState.key]||{}; LAYOUT[bmState.key].frontAsset=ev.target.result; bmRenderMain(); };
+    r.readAsDataURL(file);
+  });
+  fi.appendChild(finp); panel.appendChild(fi);
+  if(LAYOUT[bmState.key] && LAYOUT[bmState.key].frontAsset){
+    const rm=el('button','btn'); rm.textContent='원래 디자인으로 되돌리기'; rm.style.marginBottom='10px';
+    rm.addEventListener('click',()=>{ delete LAYOUT[bmState.key].frontAsset; bmRenderMain(); });
+    panel.appendChild(rm);
+  }
+}
+function bmRenderAddButtons(panel){
+  const schema=CUSTOM_BRANDS[bmState.key]; if(!schema) return;
+  const face=schema[bmState.face]; if(!face) return;
+  const h4=el('h4'); h4.textContent='요소 추가'; panel.appendChild(h4);
+  const rowA=el('div','bm-addrow');
+  const mk=(label,type)=>{
+    const b=el('button','btn'); b.type='button'; b.textContent=label;
+    b.addEventListener('click',()=>{
+      const id='e'+Math.random().toString(36).slice(2,8);
+      const base={ id, type, x:40, y:40 };
+      if(type==='text') Object.assign(base,{ field:'static', text:'텍스트', fontSize:16, fontWeight:400, color:'#000000', letterSpacing:0 });
+      if(type==='image') Object.assign(base,{ w:100, h:100, src:'' });
+      if(type==='line') Object.assign(base,{ w:100, h:2, color:'#000000' });
+      face.elements = face.elements || [];
+      face.elements.push(base);
+      bmState.selEl=id;
+      bmRenderMain();
+    });
+    return b;
+  };
+  rowA.appendChild(mk('+텍스트','text'));
+  rowA.appendChild(mk('+이미지','image'));
+  rowA.appendChild(mk('+구분선','line'));
+  panel.appendChild(rowA);
+}
+
+function bmRenderSaveButtons(panel){
+  const actions=el('div','bm-actions');
+  const saveBtn=el('button','btn primary'); saveBtn.textContent='☁ 저장 (팀 전체에 반영)';
+  saveBtn.addEventListener('click', async ()=>{
+    saveBtn.textContent='저장 중…'; saveBtn.disabled=true;
+    try{
+      if(bmState.custom){ await cloudSaveCustomBrand(bmState.key, CUSTOM_BRANDS[bmState.key]); }
+      else { await cloudSaveOverride(bmState.key, LAYOUT[bmState.key]||{}); }
+      saveBtn.textContent='저장됨 ✓';
+    }catch(e){ saveBtn.textContent='저장 실패'; }
+    setTimeout(()=>{ saveBtn.textContent='☁ 저장 (팀 전체에 반영)'; saveBtn.disabled=false; },1400);
+  });
+  actions.appendChild(saveBtn);
+  if(!bmState.custom){
+    const resetAll=el('button','btn'); resetAll.textContent='이 브랜드 전체 초기화';
+    resetAll.addEventListener('click',async()=>{
+      if(!confirm('이 브랜드의 모든 미세조정을 초기화할까요?')) return;
+      LAYOUT[bmState.key]={};
+      await cloudSaveOverride(bmState.key, {});
+      bmState.selEl=null; bmRenderMain();
+    });
+    actions.appendChild(resetAll);
+  }
+  const note=el('div','bm-note'); note.textContent='변경사항은 이 화면에서 바로 미리보이며, "저장"을 눌러야 다른 사람에게도 반영됩니다.';
+  actions.appendChild(note);
+  panel.appendChild(actions);
+}
+
 </script>
 </body>
 </html>
