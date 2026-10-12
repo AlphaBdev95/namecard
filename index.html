@@ -535,6 +535,9 @@ function alphaSignature(t,d){
   const disclaimer = d.lang==='en'
     ? `※ This e-mail and any files transmitted with it are confidential and intended solely for the use of the individual or entity to whom they are addressed. If you are not the intended recipient, please notify the sender by reply e-mail or at the contact above and delete this message immediately. Any unauthorized review, use, disclosure, or distribution is prohibited and may be unlawful.`
     : `※ 본 이메일 내용과 모든 첨부파일은 ${company}와 수신인만의 기밀로서, 지정된 수신인만이 이용할 수 있습니다. 만일 일부라도 무단으로 보유, 전송, 공개, 복제, 이용할 경우 법적 조치를 취할 수 있습니다. 귀하가 지정된 수신인이 아니라면 즉시 발송인에게 회신 E-mail 또는 위 연락처로 사실을 알려주시고, 해당 메일은 즉시 삭제하여 주시기 바랍니다. 감사합니다.`;
+  const ethics = d.lang==='en'
+    ? `Alpha Brothers complies with its code of ethics. *Report ethics violations: kyr@alphabrothers.co.kr`
+    : `알파브라더스는 윤리규범을 준수합니다. *윤리위반 신고 : kyr@alphabrothers.co.kr`;
   const html = `<div class="esig" style="position:relative;width:960px;height:360px;background:#161519;font-family:${SF};overflow:hidden">
     <div data-f="slogan" style="position:absolute;top:24px;right:59px;font:400 15px ${SF};letter-spacing:.04em;color:#fff">${slogan}</div>
     <div class="esig-wm" data-f="wm" style="position:absolute;left:83px;top:${wmTop}px;height:21px;line-height:0;color:#fff">${wm}</div>
@@ -547,7 +550,7 @@ function alphaSignature(t,d){
     </div>
     <div data-f="noticeBand" style="position:absolute;left:0;top:225px;width:960px;height:135px;background:#c9caca">
       <div data-f="disclaimer" style="position:absolute;left:80px;top:23px;width:821px;font:400 13px ${SF};line-height:21px;color:#33302d">${disclaimer}</div>
-      <div data-f="ethics" style="position:absolute;left:80px;top:96px;font:400 14px ${SF};color:#231815">알파브라더스는 윤리규범을 준수합니다. *윤리위반 신고 : kyr@alphabrothers.co.kr</div>
+      <div data-f="ethics" style="position:absolute;left:80px;top:96px;font:400 14px ${SF};color:#231815">${ethics}</div>
     </div>
   </div>`;
   return withOverrides(html,'alphabrothers','signature');
