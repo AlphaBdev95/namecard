@@ -1526,50 +1526,54 @@ if($('bulkGo')) $('bulkGo').addEventListener('click',async()=>{
 });
 
 /* =====================================================================
-   클라우드 저장소 — Firebase Firestore (미설정 시 이 브라우저의 localStorage로 대체)
+   클라우드 저장소 — Supabase (미설정 시 이 브라우저의 localStorage로 대체)
+   테이블 하나(app_kv: collection, doc_id, data jsonb)로 과거 Firestore의
+   컬렉션/문서 구조(layoutOverrides/{key}, customBrands/{key}, orgChart/main,
+   siteConfig/addr, siteConfig/cert)를 그대로 흉내낸다.
    ===================================================================== */
-const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
-}; // 팀 전체 실시간 공유가 필요하면 이 값을 Firebase 콘솔에서 발급받아 채워넣으세요.
-let fbReady = false, fbRefs = null;
+const SUPABASE_URL = 'https://uqclxahcxwxqcosbbbyb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_65bsPC79v_xS9hMNijPCVQ_VK3o1Txu'; // publishable(anon) 키 — RLS로 보호되므로 코드에 노출돼도 안전
+let sbReady = false, sbClient = null;
 async function initCloud(){
-  if(!FIREBASE_CONFIG.apiKey) return false;
+  if(!SUPABASE_URL || !SUPABASE_KEY) return false;
   try{
-    const [{initializeApp},{getFirestore,doc,getDocs,collection,setDoc,deleteDoc}, {getAuth,signInAnonymously}] = await Promise.all([
-      import('https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js'),
-      import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js'),
-      import('https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js')
-    ]);
-    const app = initializeApp(FIREBASE_CONFIG);
-    const db = getFirestore(app);
-    await signInAnonymously(getAuth(app));
-    fbRefs = {db,doc,getDocs,collection,setDoc,deleteDoc};
-    fbReady = true;
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.117.3');
+    sbClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+    sbReady = true;
     return true;
-  }catch(e){ console.warn('Firebase 초기화 실패 — 로컬 저장으로 대체합니다.', e); fbReady=false; return false; }
+  }catch(e){ console.warn('Supabase 초기화 실패 — 로컬 저장으로 대체합니다.', e); sbReady=false; return false; }
+}
+async function sbSelectAll(collection){
+  const { data, error } = await sbClient.from('app_kv').select('doc_id, data').eq('collection', collection);
+  if(error) throw error;
+  return data||[];
+}
+async function sbUpsert(collection, docId, data){
+  const { error } = await sbClient.from('app_kv')
+    .upsert({ collection, doc_id: docId, data, updated_at: new Date().toISOString() }, { onConflict: 'collection,doc_id' });
+  if(error) throw error;
+}
+async function sbDelete(collection, docId){
+  const { error } = await sbClient.from('app_kv').delete().eq('collection', collection).eq('doc_id', docId);
+  if(error) throw error;
 }
 async function cloudLoadAll(){
-  if(fbReady){
+  if(sbReady){
     try{
-      const ovSnap = await fbRefs.getDocs(fbRefs.collection(fbRefs.db,'layoutOverrides'));
-      ovSnap.forEach(dc=>{ LAYOUT[dc.id]=dc.data(); });
-      const cbSnap = await fbRefs.getDocs(fbRefs.collection(fbRefs.db,'customBrands'));
-      cbSnap.forEach(dc=>{ CUSTOM_BRANDS[dc.id]=dc.data(); });
+      const ovRows = await sbSelectAll('layoutOverrides');
+      ovRows.forEach(r=>{ LAYOUT[r.doc_id]=r.data; });
+      const cbRows = await sbSelectAll('customBrands');
+      cbRows.forEach(r=>{ CUSTOM_BRANDS[r.doc_id]=r.data; });
       try{
-        const orgSnap = await fbRefs.getDocs(fbRefs.collection(fbRefs.db,'orgChart'));
-        orgSnap.forEach(dc=>{ const data=dc.data(); if(data && Array.isArray(data.tree) && data.tree.length) ORG=normalizeOrg(data.tree); });
+        const orgRows = await sbSelectAll('orgChart');
+        orgRows.forEach(r=>{ const data=r.data; if(data && Array.isArray(data.tree) && data.tree.length) ORG=normalizeOrg(data.tree); });
       }catch(e){}
       try{
-        const cfgSnap = await fbRefs.getDocs(fbRefs.collection(fbRefs.db,'siteConfig'));
-        cfgSnap.forEach(dc=>{
-          const data=dc.data();
-          if(dc.id==='addr' && data && Array.isArray(data.list) && data.list.length) ADDR_LIST=data.list;
-          if(dc.id==='cert' && data && Array.isArray(data.list)) CERT_LIST=data.list;
+        const cfgRows = await sbSelectAll('siteConfig');
+        cfgRows.forEach(r=>{
+          const data=r.data;
+          if(r.doc_id==='addr' && data && Array.isArray(data.list) && data.list.length) ADDR_LIST=data.list;
+          if(r.doc_id==='cert' && data && Array.isArray(data.list)) CERT_LIST=data.list;
         });
       }catch(e){}
       return;
@@ -1583,48 +1587,48 @@ async function cloudLoadAll(){
 }
 async function cloudSaveOverride(key, data){
   LAYOUT[key]=data;
-  if(fbReady){
-    try{ await fbRefs.setDoc(fbRefs.doc(fbRefs.db,'layoutOverrides',key), data); return; }
+  if(sbReady){
+    try{ await sbUpsert('layoutOverrides', key, data); return; }
     catch(e){ console.warn('클라우드 저장 실패 — 로컬에만 저장합니다.', e); }
   }
   try{ localStorage.setItem('nc_layout', JSON.stringify(LAYOUT)); }catch(e){}
 }
 async function cloudSaveCustomBrand(key, data){
   CUSTOM_BRANDS[key]=data;
-  if(fbReady){
-    try{ await fbRefs.setDoc(fbRefs.doc(fbRefs.db,'customBrands',key), data); return; }
+  if(sbReady){
+    try{ await sbUpsert('customBrands', key, data); return; }
     catch(e){ console.warn('클라우드 저장 실패 — 로컬에만 저장합니다.', e); }
   }
   try{ localStorage.setItem('nc_custom', JSON.stringify(CUSTOM_BRANDS)); }catch(e){}
 }
 async function cloudDeleteCustomBrand(key){
   delete CUSTOM_BRANDS[key];
-  if(fbReady){
-    try{ await fbRefs.deleteDoc(fbRefs.doc(fbRefs.db,'customBrands',key)); return; }
+  if(sbReady){
+    try{ await sbDelete('customBrands', key); return; }
     catch(e){ console.warn('클라우드 삭제 실패', e); }
   }
   try{ localStorage.setItem('nc_custom', JSON.stringify(CUSTOM_BRANDS)); }catch(e){}
 }
 async function cloudSaveOrg(tree){
   ORG = tree;
-  if(fbReady){
-    try{ await fbRefs.setDoc(fbRefs.doc(fbRefs.db,'orgChart','main'), {tree}); return; }
+  if(sbReady){
+    try{ await sbUpsert('orgChart', 'main', {tree}); return; }
     catch(e){ console.warn('클라우드 저장 실패 — 로컬에만 저장합니다.', e); }
   }
   try{ localStorage.setItem('nc_org', JSON.stringify(ORG)); }catch(e){}
 }
 async function cloudSaveAddr(list){
   ADDR_LIST = list;
-  if(fbReady){
-    try{ await fbRefs.setDoc(fbRefs.doc(fbRefs.db,'siteConfig','addr'), {list}); return; }
+  if(sbReady){
+    try{ await sbUpsert('siteConfig', 'addr', {list}); return; }
     catch(e){ console.warn('클라우드 저장 실패 — 로컬에만 저장합니다.', e); }
   }
   try{ localStorage.setItem('nc_addr', JSON.stringify(ADDR_LIST)); }catch(e){}
 }
 async function cloudSaveCert(list){
   CERT_LIST = list;
-  if(fbReady){
-    try{ await fbRefs.setDoc(fbRefs.doc(fbRefs.db,'siteConfig','cert'), {list}); return; }
+  if(sbReady){
+    try{ await sbUpsert('siteConfig', 'cert', {list}); return; }
     catch(e){ console.warn('클라우드 저장 실패 — 로컬에만 저장합니다.', e); }
   }
   try{ localStorage.setItem('nc_cert', JSON.stringify(CERT_LIST)); }catch(e){}
@@ -1679,7 +1683,7 @@ if($('bmOverlay')) $('bmOverlay').addEventListener('mousedown', e=>{ if(e.target
 
 function bmRenderCloudStat(){
   const s=$('bmCloudStat'); if(!s) return;
-  s.textContent = fbReady ? '☁ 클라우드 연결됨 · 팀 전체 공유' : '⚠ 이 브라우저에만 저장됨 (Firebase 미연결)';
+  s.textContent = sbReady ? '☁ 클라우드 연결됨 · 팀 전체 공유' : '⚠ 이 브라우저에만 저장됨 (Supabase 미연결)';
 }
 
 function bmRenderSide(){
